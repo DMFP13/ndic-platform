@@ -1,0 +1,76 @@
+@import 'leaflet/dist/leaflet.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base resets */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  line-height: 1.5;
+}
+
+/* Leaflet map fix — ensure maps render correctly inside flex containers */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Recharts responsive fix */
+.recharts-wrapper {
+  width: 100% !important;
+}
+
+/* Smooth accordion transitions */
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.25s ease-out;
+}
+
+/* Collateral panel slide-in */
+.panel-slide-enter {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.panel-slide-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+}
+
+/* Custom scrollbar for tables */
+.table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+.table-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+.table-scroll::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+.table-scroll::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 3px;
+}
+
+/* Focus ring for accessibility */
+*:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
