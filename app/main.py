@@ -1,5 +1,4 @@
 from pathlib import Path
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,17 +10,7 @@ from app.api import animals
 UPLOAD_DIR = Path("uploads/animal-photos")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    from config import build_engine, build_session_factory
-    engine = build_engine()
-    app.state.session_factory = build_session_factory(engine)
-    yield
-    await engine.dispose()
-
-
-app = FastAPI(title="NDIC", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="NDIC", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,

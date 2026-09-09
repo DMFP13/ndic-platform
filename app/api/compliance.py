@@ -57,13 +57,7 @@ log = logging.getLogger(__name__)
 router = APIRouter(prefix="/compliance", tags=["compliance"])
 
 
-# ---------------------------------------------------------------------------
-# Session dependency
-# ---------------------------------------------------------------------------
-
-async def get_db(request: Request):  # type: ignore[return]
-    async with request.app.state.session_factory() as session:
-        yield session
+from app.dependencies import get_db
 
 
 # ---------------------------------------------------------------------------

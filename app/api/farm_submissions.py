@@ -59,19 +59,7 @@ except ImportError:
     def _hash_pw(plain: str) -> str: return hashlib.sha256(plain.encode()).hexdigest()
 
 
-# ---------------------------------------------------------------------------
-# DB session dependency (same pattern as auth.py)
-# ---------------------------------------------------------------------------
-
-async def get_db(request: Request) -> AsyncSession:  # type: ignore[return]
-    factory = request.app.state.session_factory
-    async with factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
+from app.dependencies import get_db
 
 
 # ---------------------------------------------------------------------------

@@ -67,26 +67,7 @@ except ImportError:
         return hashlib.sha256(plain.encode()).hexdigest() == hashed
 
 
-# ---------------------------------------------------------------------------
-# Session dependency (defined here to avoid circular imports in demo;
-# in a real project this lives in config.py or a deps.py file)
-# ---------------------------------------------------------------------------
-
-async def get_db(request: Request) -> AsyncSession:  # type: ignore[return]
-    """
-    FastAPI dependency: yields an async DB session.
-    The session factory is attached to `request.app.state.session_factory`
-    by the application lifespan startup handler.
-    """
-    factory = request.app.state.session_factory
-    async with factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-
+from app.dependencies import get_db
 
 DB = Annotated[AsyncSession, Depends(get_db)]
 
