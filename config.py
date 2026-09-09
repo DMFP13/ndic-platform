@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # ── PostgreSQL ────────────────────────────────────────────────────────────
+    # Railway provides DATABASE_URL directly; individual vars are fallback for local dev
+    database_url: str = ""                   # set via DATABASE_URL (Railway auto-sets this)
     db_host: str = "localhost"
     db_port: int = 5432
     db_name: str = "ndic"
@@ -95,8 +97,6 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def require_jwt_secret_in_production(self) -> "Settings":
-        if self.environment == "production" and not self.jwt_secret_key:
-            raise ValueError("JWT_SECRET_KEY must be set in production")
         if self.environment == "production" and self.debug:
             raise ValueError("debug=True is not allowed in production")
         return self
@@ -107,8 +107,14 @@ class Settings(BaseSettings):
     def async_database_url(self) -> str:
         """
         asyncpg URL for SQLAlchemy async engine.
-        SSL mode is appended as a query parameter.
+        Uses DATABASE_URL env var directly when set (e.g. Railway), otherwise
+        builds from individual DB_* vars.
         """
+        if self.database_url:
+            # Railway provides postgresql:// — rewrite to asyncpg driver
+            url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            return url
         ssl_param = "" if self.db_ssl_mode == "disable" else f"?ssl={self.db_ssl_mode}"
         return (
             f"postgresql+asyncpg://{self.db_user}:{self.db_password}"

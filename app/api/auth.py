@@ -200,7 +200,7 @@ class IntegrityCheckResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 @router.post(
-    "/auth/register-organization",
+    "/register-organization",
     response_model=RegisterOrganizationResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Register a new organisation and its first admin user",
@@ -277,7 +277,7 @@ async def register_organization(
 
 
 @router.post(
-    "/auth/login",
+    "/login",
     response_model=TokenResponse,
     summary="Authenticate and receive JWT tokens",
     tags=["auth"],
@@ -317,7 +317,7 @@ async def login(body: LoginRequest, session: DB) -> TokenResponse:
 
 
 @router.post(
-    "/auth/refresh-token",
+    "/refresh-token",
     response_model=TokenResponse,
     summary="Exchange a refresh token for a new access token",
     tags=["auth"],
@@ -362,7 +362,7 @@ async def refresh_token(body: RefreshRequest, session: DB) -> TokenResponse:
 
 
 @router.post(
-    "/auth/register-public-key",
+    "/register-public-key",
     status_code=status.HTTP_200_OK,
     summary="Register or update a user's RSA public key",
     tags=["auth"],
