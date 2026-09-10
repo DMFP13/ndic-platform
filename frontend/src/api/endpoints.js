@@ -1,17 +1,5 @@
-import { apiClient } from './client.js';
-
-// ---------------------------------------------------------------------------
-// Mock fallback helper
-// If the API call fails (any error, including 404), returns the mock data
-// wrapped in a resolved promise that mimics an axios response shape.
-// ---------------------------------------------------------------------------
-async function _mockFallback(apiFn, mockData) {
-  try {
-    return await apiFn();
-  } catch {
-    return { data: mockData, _isMock: true };
-  }
-}
+// All endpoints return rich mock data for the demo build.
+const _mock = (data) => Promise.resolve({ data, _isMock: true });
 
 // ---------------------------------------------------------------------------
 // Government endpoints
@@ -26,10 +14,7 @@ export function getDiseaseSurveillance(timelineFilter = '30d') {
     { id: 5, lat: 13.15, lng: 5.23, disease: 'Brucellosis', status: 'confirmed', location: 'Sokoto', animals_affected: 34, date: '2024-03-07' },
     { id: 6, lat: 9.92, lng: 8.89, disease: 'LSD', status: 'suspected', location: 'Plateau', animals_affected: 56, date: '2024-03-11' },
   ];
-  return _mockFallback(
-    () => apiClient.get('/government/disease-map', { params: { timeline: timelineFilter } }),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getProductionTrends() {
@@ -41,10 +26,7 @@ export function getProductionTrends() {
     { state: 'Enugu', liters: 12400, trend: -10 },
     { state: 'FCT', liters: 9800, trend: 1 },
   ];
-  return _mockFallback(
-    () => apiClient.get('/government/production-trends'),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getClimateRiskMap() {
@@ -54,10 +36,7 @@ export function getClimateRiskMap() {
     { region: 'South-East', bounds: [[4, 6], [8, 10]], droughtRisk: 'low', floodRisk: 'medium' },
     { region: 'Middle Belt', bounds: [[7, 3], [10, 12]], droughtRisk: 'medium', floodRisk: 'medium' },
   ];
-  return _mockFallback(
-    () => apiClient.get('/government/climate-risk-map'),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getEarlyWarnings() {
@@ -68,10 +47,7 @@ export function getEarlyWarnings() {
     { id: 4, severity: 'warning', title: 'Drought Stress — Feed Shortage Risk', location: 'Katsina', description: 'Pasture quality index dropped 22% vs 30-day average. Feed price inflation risk.', action: 'Alert registered farms. Subsidized feed procurement advisory.', status: 'monitoring', date: '2024-03-08' },
     { id: 5, severity: 'info', title: 'Mastitis Cluster Resolved', location: 'Ogun', description: 'Treatment programme completed. All 12 affected animals returned to healthy status.', action: 'Continue monthly monitoring. Document treatment outcomes.', status: 'resolved', date: '2024-03-05' },
   ];
-  return _mockFallback(
-    () => apiClient.get('/government/early-warnings'),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getPolicyAnalytics() {
@@ -93,10 +69,7 @@ export function getPolicyAnalytics() {
     at_risk_trend: 0.8,
     treated_trend: -0.5,
   };
-  return _mockFallback(
-    () => apiClient.get('/government/policy-analytics'),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 // ---------------------------------------------------------------------------
@@ -119,10 +92,7 @@ export function getSupplyForecast(processorId) {
       { id: 's4', name: 'FCT Small Holders', location: 'FCT', daily_avg: 420, quality_grade: { A: 35, B: 45, C: 20 }, health_status: 'at_risk', trend: -12 },
     ],
   };
-  return _mockFallback(
-    () => apiClient.get(`/processors/${processorId}/supply-dashboard`),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getBenchmarking(processorId) {
@@ -132,10 +102,7 @@ export function getBenchmarking(processorId) {
     best_in_class: { daily_volume: 7200, avg_quality_grade: 'A', price_paid: 310 },
     interpretation: 'Your daily volume is 10.5% above peer median, indicating strong supplier relationships. Quality grade is marginally above median. Price paid is 3.4% below median — review pricing strategy to retain top-grade suppliers.',
   };
-  return _mockFallback(
-    () => apiClient.get(`/processors/${processorId}/benchmarking`),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getCostAnalysis(processorId) {
@@ -152,10 +119,7 @@ export function getCostAnalysis(processorId) {
       { level: 'info', name: 'Seasonal Volume Dip Forecast', description: 'Historical data shows 15-20% volume reduction in Jul-Aug. Recommend advance contracting.', affected_suppliers: ['All suppliers'] },
     ],
   };
-  return _mockFallback(
-    () => apiClient.get(`/processors/${processorId}/cost-analysis`),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 // ---------------------------------------------------------------------------
@@ -218,17 +182,11 @@ export function getFarmDashboard(farmId) {
       recommendation: 'Moderate drought risk over next 30 days. Begin supplemental feed procurement. Review borehole water reserve levels. Consider early dry-season grazing rotation.',
     },
   };
-  return _mockFallback(
-    () => apiClient.get(`/farms/${farmId}/dashboard`),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getAnimalProfile(farmId, animalId) {
-  return _mockFallback(
-    () => apiClient.get(`/farms/${farmId}/animals/${animalId}`),
-    null
-  );
+  return _mock(null);
 }
 
 export function getFarmForecast(farmId, daysAhead = 30) {
@@ -236,10 +194,7 @@ export function getFarmForecast(farmId, daysAhead = 30) {
     day: i + 1,
     yield: Math.round((387.6 + Math.sin(i / 6) * 20 + i * 0.3) * 10) / 10,
   }));
-  return _mockFallback(
-    () => apiClient.get(`/farms/${farmId}/forecast`, { params: { days_ahead: daysAhead } }),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 // ---------------------------------------------------------------------------
@@ -271,24 +226,15 @@ export function getLenderPortfolio(lenderId) {
       { category: 'Maturity Risk', severity: 'critical', farm: 'Ogun Dairy Ltd', detail: 'Loan matures in 87 days. Farm performance deteriorating. High default risk.', date: '2024-03-10' },
     ],
   };
-  return _mockFallback(
-    () => apiClient.get(`/lenders/${lenderId}/portfolio-summary`),
-    MOCK
-  );
+  return _mock(MOCK);
 }
 
 export function getLenderLoans(lenderId, status = 'all') {
-  return _mockFallback(
-    () => apiClient.get(`/lenders/${lenderId}/loans`, { params: { status } }),
-    []
-  );
+  return _mock([]);
 }
 
 export function getCollateralAssessment(lenderId, farmId) {
-  return _mockFallback(
-    () => apiClient.get(`/lenders/${lenderId}/farm/${farmId}/collateral-assessment`),
-    null
-  );
+  return _mock(null);
 }
 
 // ---------------------------------------------------------------------------
@@ -390,43 +336,33 @@ function _mockPassport(farmId, animalId) {
 }
 
 export function getAnimalPassport(farmId, animalId) {
-  return _mockFallback(
-    () => apiClient.get(`/farms/${farmId}/animals/${animalId}/passport`),
-    _mockPassport(farmId, animalId)
-  );
+  return _mock(_mockPassport(farmId, animalId));
 }
 
 export function getSensorHistory(farmId, animalId, days = 30) {
-  return _mockFallback(
-    () => apiClient.get(`/farms/${farmId}/animals/${animalId}/sensor-history`, { params: { days } }),
-    { animal_id: animalId, is_mock: true, readings: _mockPassport(farmId, animalId).sensor_series }
-  );
+  return _mock({ animal_id: animalId, is_mock: true, readings: _mockPassport(farmId, animalId).sensor_series });
 }
 
 export function createVetRecord(farmId, animalId, data) {
-  return apiClient.post(`/farms/${farmId}/animals/${animalId}/vet-records`, data);
+  return _mock({ ...data, id: `vr-${Date.now()}`, is_mock: true });
 }
 
 export function updateVetRecord(farmId, animalId, recordId, data) {
-  return apiClient.put(`/farms/${farmId}/animals/${animalId}/vet-records/${recordId}`, data);
+  return _mock({ ...data, id: recordId, is_mock: true });
 }
 
 export function deleteVetRecord(farmId, animalId, recordId) {
-  return apiClient.delete(`/farms/${farmId}/animals/${animalId}/vet-records/${recordId}`);
+  return _mock({ deleted: true });
 }
 
 export function uploadAnimalPhoto(farmId, animalId, formData) {
-  return apiClient.post(`/farms/${farmId}/animals/${animalId}/photos`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  return _mock({ id: `ph-${Date.now()}`, url: null, is_mock: true });
 }
 
 export function deleteAnimalPhoto(farmId, animalId, photoId) {
-  return apiClient.delete(`/farms/${farmId}/animals/${animalId}/photos/${photoId}`);
+  return _mock({ deleted: true });
 }
 
 export function identifyFromPhoto(formData) {
-  return apiClient.post('/animals/identify-from-photo', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  return _mock({ match: null, confidence: 0, is_mock: true });
 }
