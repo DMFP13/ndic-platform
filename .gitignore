@@ -57,3 +57,4 @@ htmlcov/
 *.p12
 private_key*
 secret*
+.vercel

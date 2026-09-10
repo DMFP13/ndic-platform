@@ -107,13 +107,21 @@ class Settings(BaseSettings):
     def async_database_url(self) -> str:
         """
         asyncpg URL for SQLAlchemy async engine.
-        Uses DATABASE_URL env var directly when set (e.g. Railway), otherwise
+        Uses DATABASE_URL env var directly when set (e.g. Neon/Vercel), otherwise
         builds from individual DB_* vars.
+        asyncpg does not accept channel_binding or sslmode as URL params; those
+        are stripped here and SSL is passed via connect_args in build_engine.
         """
         if self.database_url:
-            # Railway provides postgresql:// — rewrite to asyncpg driver
+            from urllib.parse import urlparse, urlencode, parse_qs, urlunparse
             url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
             url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            parsed = urlparse(url)
+            qs = parse_qs(parsed.query, keep_blank_values=True)
+            qs.pop("channel_binding", None)
+            qs.pop("sslmode", None)
+            new_query = urlencode({k: v[0] for k, v in qs.items()})
+            url = urlunparse(parsed._replace(query=new_query))
             return url
         ssl_param = "" if self.db_ssl_mode == "disable" else f"?ssl={self.db_ssl_mode}"
         return (
@@ -170,6 +178,15 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 
 def build_engine(settings: Settings | None = None):
     s = settings or get_settings()
+    if s.database_url:
+        # Serverless (Vercel/Neon): disable pooling, pass SSL via connect_args
+        from sqlalchemy.pool import NullPool
+        return create_async_engine(
+            s.async_database_url,
+            poolclass=NullPool,
+            connect_args={"ssl": True},
+            echo=s.db_echo_sql,
+        )
     return create_async_engine(
         s.async_database_url,
         **s.sqlalchemy_engine_kwargs,

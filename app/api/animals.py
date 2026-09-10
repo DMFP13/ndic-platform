@@ -31,7 +31,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Path, UploadFile, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from app.middleware.access_control import get_current_user
@@ -314,7 +314,7 @@ async def update_vet_record(
     }
 
 
-@router.delete("/farms/{farm_id}/animals/{animal_id}/vet-records/{record_id}", status_code=204)
+@router.delete("/farms/{farm_id}/animals/{animal_id}/vet-records/{record_id}", status_code=204, response_class=Response)
 async def delete_vet_record(
     farm_id: str = Path(...),
     animal_id: str = Path(...),
@@ -372,7 +372,7 @@ async def upload_photo(
     }
 
 
-@router.delete("/farms/{farm_id}/animals/{animal_id}/photos/{photo_id}", status_code=204)
+@router.delete("/farms/{farm_id}/animals/{animal_id}/photos/{photo_id}", status_code=204, response_class=Response)
 async def delete_animal_photo(
     farm_id: str = Path(...),
     animal_id: str = Path(...),

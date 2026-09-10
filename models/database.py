@@ -57,7 +57,7 @@ class Organization(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     org_type: Mapped[OrganizationType] = mapped_column(
-        SAEnum(OrganizationType, name="organizationtype"), nullable=False
+        SAEnum(OrganizationType, name="organizationtype", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     registration_number: Mapped[Optional[str]] = mapped_column(
         String(100), unique=True, nullable=True
@@ -115,7 +115,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="userrole"), nullable=False
+        SAEnum(UserRole, name="userrole", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     organization_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="RESTRICT"),
@@ -231,17 +231,17 @@ class Animal(Base):
     )
     tag_number: Mapped[str] = mapped_column(String(100), nullable=False)
     breed: Mapped[AnimalBreed] = mapped_column(
-        SAEnum(AnimalBreed, name="animalbreed"), nullable=False
+        SAEnum(AnimalBreed, name="animalbreed", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     sex: Mapped[AnimalSex] = mapped_column(
-        SAEnum(AnimalSex, name="animalsex"), nullable=False
+        SAEnum(AnimalSex, name="animalsex", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     date_of_birth: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     weight_kg: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     status: Mapped[AnimalStatus] = mapped_column(
-        SAEnum(AnimalStatus, name="animalstatus"),
+        SAEnum(AnimalStatus, name="animalstatus", values_callable=lambda x: [e.value for e in x]),
         default=AnimalStatus.ACTIVE, nullable=False,
     )
     acquired_at: Mapped[datetime] = mapped_column(
@@ -386,7 +386,7 @@ class ProcessorIntake(Base):
     )
     volume_liters: Mapped[float] = mapped_column(Float, nullable=False)
     quality_grade: Mapped[QualityGrade] = mapped_column(
-        SAEnum(QualityGrade, name="qualitygrade"), nullable=False
+        SAEnum(QualityGrade, name="qualitygrade", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     fat_content_percent: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     protein_content_percent: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
@@ -471,7 +471,7 @@ class DiseaseAlert(Base):
         DateTime(timezone=True), nullable=False
     )
     disease_type: Mapped[DiseaseType] = mapped_column(
-        SAEnum(DiseaseType, name="diseasetype"), nullable=False
+        SAEnum(DiseaseType, name="diseasetype", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     state: Mapped[str] = mapped_column(String(100), nullable=False)
     lga: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
@@ -480,12 +480,12 @@ class DiseaseAlert(Base):
     affected_animal_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     affected_farm_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     confirmation_status: Mapped[AlertConfirmationStatus] = mapped_column(
-        SAEnum(AlertConfirmationStatus, name="alertconfirmationstatus"),
+        SAEnum(AlertConfirmationStatus, name="alertconfirmationstatus", values_callable=lambda x: [e.value for e in x]),
         default=AlertConfirmationStatus.SUSPECTED,
         nullable=False,
     )
     severity: Mapped[AlertSeverity] = mapped_column(
-        SAEnum(AlertSeverity, name="alertseverity"),
+        SAEnum(AlertSeverity, name="alertseverity", values_callable=lambda x: [e.value for e in x]),
         default=AlertSeverity.LOW,
         nullable=False,
     )
@@ -566,7 +566,7 @@ class LenderAssessment(Base):
     # 0 = no risk, 100 = maximum risk
     risk_score: Mapped[float] = mapped_column(Float, nullable=False)
     collateral_confidence: Mapped[CollateralConfidence] = mapped_column(
-        SAEnum(CollateralConfidence, name="collateralconfidence"), nullable=False
+        SAEnum(CollateralConfidence, name="collateralconfidence", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     loan_amount_requested_ngn: Mapped[Optional[float]] = mapped_column(
         Float, nullable=True
@@ -649,7 +649,7 @@ class LedgerLog(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     event_type: Mapped[LedgerEventType] = mapped_column(
-        SAEnum(LedgerEventType, name="ledgereventtype"), nullable=False
+        SAEnum(LedgerEventType, name="ledgereventtype", values_callable=lambda x: [e.value for e in x]), nullable=False
     )
     actor_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False
