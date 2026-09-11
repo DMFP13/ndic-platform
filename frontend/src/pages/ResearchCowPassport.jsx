@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   LineChart, Line, ComposedChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, ReferenceLine,
+  ResponsiveContainer, ReferenceLine, Scatter, ScatterChart, ZAxis,
 } from 'recharts';
 import { getCowMockData } from '../utils/researchMocks';
 
@@ -27,6 +27,91 @@ function StatCard({ label, value, sub, color = 'text-blue-700' }) {
       <p className="text-xs text-gray-500 font-medium">{label}</p>
       <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+// ── Progesterone Cycle Chart ───────────────────────────────────────────────────
+const LFT_P4_VALUE = { Visible: 22, 'Faint, but visible': 8, 'Not visible': 1.5, Invalid: null };
+
+function P4CycleChart({ ts, p4Tests }) {
+  const chartData = useMemo(() => {
+    if (!ts.length) return [];
+    // Build estrus day index from heat detection events
+    const estrus = ts.reduce((acc, d, i) => { if (d.hd > 0) acc.push(i); return acc; }, []);
+    return ts.map((d, i) => {
+      // Distance to nearest estrus in days
+      const dist = estrus.length
+        ? Math.min(...estrus.map(e => Math.abs(i - e)))
+        : 21;
+      // Model: trough at estrus (~1 ng/mL), peak luteal day 8–12 (~22 ng/mL), drop day 18+
+      let p4;
+      if (dist <= 1) p4 = 1.0 + (i % 3) * 0.2;
+      else if (dist <= 8) p4 = 1 + (dist / 8) * 19;
+      else if (dist <= 13) p4 = 20 + ((dist - 8) % 3) * 1.5;
+      else p4 = Math.max(1.5, 22 - (dist - 13) * 2.8);
+      return { date: d.date, p4: parseFloat(p4.toFixed(1)) };
+    });
+  }, [ts]);
+
+  // LFT test overlay points
+  const lftPoints = useMemo(() =>
+    p4Tests
+      .map(t => ({ date: t.date, val: LFT_P4_VALUE[t.result], result: t.result }))
+      .filter(t => t.val !== null),
+    [p4Tests]
+  );
+
+  const TICK = Math.max(1, Math.floor(chartData.length / 8));
+
+  const CustomDot = (props) => {
+    const { cx, cy, payload } = props;
+    if (!payload?.isLft) return null;
+    const color = LFT_COLOR[payload.result] || '#9ca3af';
+    return <circle cx={cx} cy={cy} r={5} fill={color} stroke="#fff" strokeWidth={1.5} />;
+  };
+
+  // Merge LFT points into chart data for overlay line
+  const merged = chartData.map(d => {
+    const lft = lftPoints.find(l => l.date === d.date);
+    return { ...d, lftVal: lft ? lft.val : null, lftResult: lft?.result, isLft: !!lft };
+  });
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-5">
+      <div className="flex items-start justify-between mb-1">
+        <p className="text-sm font-semibold text-gray-900">Progesterone Cycle — Estimated</p>
+        <div className="flex items-center gap-3 text-xs text-gray-400">
+          {Object.entries(LFT_COLOR).map(([k, c]) => (
+            <span key={k} className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: c }} />
+              {k}
+            </span>
+          ))}
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">
+        Modelled from Bodit heat-detection events · ng/mL · LFT test results overlaid as coloured dots
+      </p>
+      <ResponsiveContainer width="100%" height={180}>
+        <ComposedChart data={merged} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={d => d.slice(5)} interval={TICK} />
+          <YAxis tick={{ fontSize: 10 }} domain={[0, 28]} unit=" ng/mL" width={60} />
+          <Tooltip
+            labelFormatter={d => `Date: ${d}`}
+            formatter={(v, n, p) => {
+              if (n === 'P4 (est.)') return [`${v} ng/mL`, 'P4 (est.)'];
+              if (n === 'LFT') return [`${v} ng/mL — ${p.payload.lftResult}`, 'LFT result'];
+              return [v, n];
+            }}
+          />
+          <ReferenceLine y={5} stroke="#dc2626" strokeDasharray="3 3" label={{ value: 'Estrus', fontSize: 9, fill: '#dc2626', position: 'insideTopLeft' }} />
+          <ReferenceLine y={16} stroke="#16a34a" strokeDasharray="3 3" label={{ value: 'Luteal', fontSize: 9, fill: '#16a34a', position: 'insideTopLeft' }} />
+          <Line type="monotone" dataKey="p4" name="P4 (est.)" stroke="#8b5cf6" dot={false} strokeWidth={2} />
+          <Scatter dataKey="lftVal" name="LFT" shape={<CustomDot />} fill="#16a34a" />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -759,6 +844,9 @@ export default function ResearchCowPassport() {
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Progesterone cycle */}
+        <P4CycleChart ts={ts} p4Tests={p4_tests} />
 
         {/* Editable panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
