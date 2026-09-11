@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const DEMO_ACCOUNTS = [
-  { role: 'research_analyst',     label: 'Farm Manager',      email: 'farm@ndic.ng',         desc: 'Herd health, AI insights, milk yield' },
-  { role: 'govt_analyst',         label: 'FMARD Analyst',     email: 'govt@ndic.ng',         desc: 'Disease map, production trends, alerts' },
-  { role: 'lender_analyst',       label: 'Lender Analyst',    email: 'lender@ndic.ng',       desc: 'Portfolio risk, collateral valuation' },
-  { role: 'processor_analyst',    label: 'Processor Analyst', email: 'processor@ndic.ng',    desc: 'Supply forecast, supplier benchmarking' },
-  { role: 'research_analyst',     label: 'Research Dashboard', email: 'research@ndic.ng',   desc: 'Bodit sensors · P4 Rapid · live weather & markets' },
+  { role: 'research_analyst', label: 'Farm Manager',        email: 'farm@ndic.ng',      desc: 'Herd health, AI insights, milk yield' },
+  { role: 'govt_analyst',     label: 'Government (FMARD)',  email: 'govt@ndic.ng',      desc: 'Regional map, disease outbreaks, production trends' },
+  { role: 'lender_analyst',   label: 'Lender Analyst',      email: 'lender@ndic.ng',    desc: 'Portfolio risk, collateral valuation' },
+  { role: 'processor_analyst',label: 'Processor Analyst',   email: 'processor@ndic.ng', desc: 'Supply forecast, supplier benchmarking' },
+  { role: 'research_analyst', label: 'Research Dashboard',  email: 'research@ndic.ng',  desc: 'Bodit sensors · P4 Rapid · live weather & markets' },
 ];
 
 function getRoleRoute(role) {
@@ -23,7 +23,7 @@ function getRoleRoute(role) {
 export default function LoginPage() {
   const { demoLogin } = useAuth();
   const navigate = useNavigate();
-  const [selected, setSelected] = useState('research_analyst');
+  const [selected, setSelected] = useState('farm@ndic.ng');
 
   function enter(role, email) {
     demoLogin(role, email);
@@ -52,9 +52,9 @@ export default function LoginPage() {
               <button
                 key={a.role}
                 type="button"
-                onClick={() => setSelected(a.role)}
+                onClick={() => setSelected(a.email)}
                 className={`w-full text-left px-4 py-3 rounded-lg border transition-all ${
-                  selected === a.role
+                  selected === a.email
                     ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                 }`}
@@ -73,7 +73,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              const acct = DEMO_ACCOUNTS.find((a) => a.role === selected);
+              const acct = DEMO_ACCOUNTS.find((a) => a.email === selected);
               enter(acct.role, acct.email);
             }}
             className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
