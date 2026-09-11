@@ -34,56 +34,39 @@ function StatCard({ label, value, sub, color = 'text-blue-700' }) {
 // ── Progesterone Cycle Chart ───────────────────────────────────────────────────
 const LFT_P4_VALUE = { Visible: 22, 'Faint, but visible': 8, 'Not visible': 1.5, Invalid: null };
 
-function P4CycleChart({ ts, p4Tests }) {
+function P4CycleChart({ p4Tests }) {
   const chartData = useMemo(() => {
-    if (!ts.length) return [];
-    // Build estrus day index from heat detection events
-    const estrus = ts.reduce((acc, d, i) => { if (d.hd > 0) acc.push(i); return acc; }, []);
-    return ts.map((d, i) => {
-      // Distance to nearest estrus in days
-      const dist = estrus.length
-        ? Math.min(...estrus.map(e => Math.abs(i - e)))
-        : 21;
-      // Model: trough at estrus (~1 ng/mL), peak luteal day 8–12 (~22 ng/mL), drop day 18+
-      let p4;
-      if (dist <= 1) p4 = 1.0 + (i % 3) * 0.2;
-      else if (dist <= 8) p4 = 1 + (dist / 8) * 19;
-      else if (dist <= 13) p4 = 20 + ((dist - 8) % 3) * 1.5;
-      else p4 = Math.max(1.5, 22 - (dist - 13) * 2.8);
-      return { date: d.date, p4: parseFloat(p4.toFixed(1)) };
-    });
-  }, [ts]);
-
-  // LFT test overlay points
-  const lftPoints = useMemo(() =>
-    p4Tests
-      .map(t => ({ date: t.date, val: LFT_P4_VALUE[t.result], result: t.result }))
-      .filter(t => t.val !== null),
-    [p4Tests]
-  );
-
-  const TICK = Math.max(1, Math.floor(chartData.length / 8));
+    return [...p4Tests]
+      .filter(t => LFT_P4_VALUE[t.result] !== null)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map(t => ({
+        date: t.date,
+        p4: LFT_P4_VALUE[t.result],
+        result: t.result,
+        notes: t.notes || '',
+      }));
+  }, [p4Tests]);
 
   const CustomDot = (props) => {
     const { cx, cy, payload } = props;
-    if (!payload?.isLft) return null;
-    const color = LFT_COLOR[payload.result] || '#9ca3af';
-    return <circle cx={cx} cy={cy} r={5} fill={color} stroke="#fff" strokeWidth={1.5} />;
+    const color = LFT_COLOR[payload?.result] || '#9ca3af';
+    return <circle cx={cx} cy={cy} r={6} fill={color} stroke="#fff" strokeWidth={2} />;
   };
 
-  // Merge LFT points into chart data for overlay line
-  const merged = chartData.map(d => {
-    const lft = lftPoints.find(l => l.date === d.date);
-    return { ...d, lftVal: lft ? lft.val : null, lftResult: lft?.result, isLft: !!lft };
-  });
+  if (!chartData.length) return (
+    <div className="bg-white rounded-lg border border-gray-200 p-5">
+      <p className="text-sm font-semibold text-gray-900 mb-1">Progesterone Cycle — P4 LFT Results</p>
+      <p className="text-sm text-gray-400 mt-3">No P4 LFT tests recorded yet. Add tests in the panel below.</p>
+    </div>
+  );
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5">
       <div className="flex items-start justify-between mb-1">
-        <p className="text-sm font-semibold text-gray-900">Progesterone Cycle — Estimated</p>
-        <div className="flex items-center gap-3 text-xs text-gray-400">
+        <p className="text-sm font-semibold text-gray-900">Progesterone Cycle — P4 LFT Results</p>
+        <div className="flex items-center gap-3 flex-wrap justify-end">
           {Object.entries(LFT_COLOR).map(([k, c]) => (
-            <span key={k} className="flex items-center gap-1">
+            <span key={k} className="flex items-center gap-1 text-xs text-gray-400">
               <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: c }} />
               {k}
             </span>
@@ -91,26 +74,25 @@ function P4CycleChart({ ts, p4Tests }) {
         </div>
       </div>
       <p className="text-xs text-gray-400 mb-3">
-        Modelled from Bodit heat-detection events · ng/mL · LFT test results overlaid as coloured dots
+        P4 Rapid LFT readings · Visible ≈ high P4 (luteal) · Not visible ≈ low P4 (estrus)
       </p>
       <ResponsiveContainer width="100%" height={180}>
-        <ComposedChart data={merged} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={d => d.slice(5)} interval={TICK} />
-          <YAxis tick={{ fontSize: 10 }} domain={[0, 28]} unit=" ng/mL" width={60} />
+          <XAxis dataKey="date" tick={{ fontSize: 9 }} tickFormatter={d => d.slice(5)} />
+          <YAxis tick={{ fontSize: 10 }} domain={[0, 28]} unit=" ng/mL" width={60}
+            ticks={[1.5, 8, 22]}
+            tickFormatter={v => v === 1.5 ? 'Low' : v === 8 ? 'Mid' : 'High'} />
           <Tooltip
             labelFormatter={d => `Date: ${d}`}
-            formatter={(v, n, p) => {
-              if (n === 'P4 (est.)') return [`${v} ng/mL`, 'P4 (est.)'];
-              if (n === 'LFT') return [`${v} ng/mL — ${p.payload.lftResult}`, 'LFT result'];
-              return [v, n];
-            }}
+            formatter={(v, n, p) => [`${p.payload.result}${p.payload.notes ? ' — ' + p.payload.notes : ''}`, 'P4 Result']}
           />
-          <ReferenceLine y={5} stroke="#dc2626" strokeDasharray="3 3" label={{ value: 'Estrus', fontSize: 9, fill: '#dc2626', position: 'insideTopLeft' }} />
-          <ReferenceLine y={16} stroke="#16a34a" strokeDasharray="3 3" label={{ value: 'Luteal', fontSize: 9, fill: '#16a34a', position: 'insideTopLeft' }} />
-          <Line type="monotone" dataKey="p4" name="P4 (est.)" stroke="#8b5cf6" dot={false} strokeWidth={2} />
-          <Scatter dataKey="lftVal" name="LFT" shape={<CustomDot />} fill="#16a34a" />
-        </ComposedChart>
+          <ReferenceLine y={5} stroke="#dc2626" strokeDasharray="3 3"
+            label={{ value: 'Low (estrus)', fontSize: 9, fill: '#dc2626', position: 'insideTopLeft' }} />
+          <ReferenceLine y={16} stroke="#16a34a" strokeDasharray="3 3"
+            label={{ value: 'High (luteal)', fontSize: 9, fill: '#16a34a', position: 'insideTopLeft' }} />
+          <Line type="monotone" dataKey="p4" name="P4" stroke="#8b5cf6" strokeWidth={2} dot={<CustomDot />} activeDot={{ r: 7 }} />
+        </LineChart>
       </ResponsiveContainer>
     </div>
   );
@@ -846,7 +828,7 @@ export default function ResearchCowPassport() {
         </div>
 
         {/* Progesterone cycle */}
-        <P4CycleChart ts={ts} p4Tests={p4_tests} />
+        <P4CycleChart p4Tests={p4_tests} />
 
         {/* Editable panels */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
