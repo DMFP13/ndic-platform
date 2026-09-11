@@ -8,9 +8,9 @@ import {
 } from 'lucide-react';
 
 const ROLE_NAV = {
-  farm_manager:         [{ label: 'Farm Dashboard', path: '/farm', icon: Leaf }],
-  farm_admin:           [{ label: 'Farm Dashboard', path: '/farm', icon: Leaf }],
-  farm_vet:             [{ label: 'Farm Dashboard', path: '/farm', icon: Leaf }],
+  farm_manager:         [{ label: 'Farm Dashboard', path: '/research', icon: Leaf }],
+  farm_admin:           [{ label: 'Farm Dashboard', path: '/research', icon: Leaf }],
+  farm_vet:             [{ label: 'Farm Dashboard', path: '/research', icon: Leaf }],
   processor_analyst:    [{ label: 'Processor Dashboard', path: '/processor', icon: Factory }],
   processor_commercial: [{ label: 'Processor Dashboard', path: '/processor', icon: Factory }],
   govt_analyst:         [{ label: 'Government Dashboard', path: '/government', icon: Building2 }],
