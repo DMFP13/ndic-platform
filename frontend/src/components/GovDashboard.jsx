@@ -81,7 +81,6 @@ const WEATHER_WARNINGS = [
   {
     id: 'w1',
     type: 'Heavy Rainfall',
-    icon: '🌧',
     severity: 'red',
     title: 'Flash Flood Watch — Benue & Kogi',
     detail: 'Forecast 80–120 mm rainfall over 24 hrs. River Niger and Benue tributaries near capacity. Move livestock to higher ground.',
@@ -93,7 +92,6 @@ const WEATHER_WARNINGS = [
   {
     id: 'w2',
     type: 'Heat Stress',
-    icon: '☀️',
     severity: 'amber',
     title: 'Livestock Heat Stress — Katsina & Zamfara',
     detail: 'Daytime temps 39–42 °C forecast. High humidity. Cattle productivity and health risk elevated. Ensure shade, water, and early-morning grazing.',
@@ -105,7 +103,6 @@ const WEATHER_WARNINGS = [
   {
     id: 'w3',
     type: 'Thunderstorm',
-    icon: '⛈',
     severity: 'amber',
     title: 'Severe Thunderstorm Advisory — Plateau & Taraba',
     detail: 'Isolated severe storms with lightning, gusty winds 55–75 km/h and hail possible in elevated areas. Risk of barn damage and animal injury.',
@@ -117,7 +114,6 @@ const WEATHER_WARNINGS = [
   {
     id: 'w4',
     type: 'Dry Spell',
-    icon: '🌵',
     severity: 'amber',
     title: 'Pasture Dry Spell — Kaduna & Niger',
     detail: 'Below-average rainfall for 3rd consecutive week. Pasture productivity reduced by est. 30%. Supplement feeding recommended.',
@@ -129,7 +125,6 @@ const WEATHER_WARNINGS = [
   {
     id: 'w5',
     type: 'Harmattan Outlook',
-    icon: '💨',
     severity: 'green',
     title: 'Early Harmattan Onset Possible — North',
     detail: 'Dust-laden NE trade winds forecast to arrive 2–3 weeks earlier than average. Expect reduced visibility and respiratory stress in animals. Prepare ventilation.',
@@ -176,7 +171,6 @@ function WeatherWarnings() {
               <div className="flex-1 px-4 py-3">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-base">{w.icon}</span>
                     <span className={`text-xs font-semibold px-1.5 py-0.5 rounded border ${s.badge}`}>{w.type}</span>
                     <p className={`text-sm font-semibold ${s.label}`}>{w.title}</p>
                   </div>
@@ -374,7 +368,7 @@ function EnvironmentalAlerts() {
   const alerts = [
     {
       type: 'Flood',
-      icon: '🌊',
+
       color: 'border-blue-200 bg-blue-50',
       label: 'text-blue-700',
       severity: 'HIGH',
@@ -386,7 +380,7 @@ function EnvironmentalAlerts() {
     },
     {
       type: 'Flood',
-      icon: '🌊',
+
       color: 'border-blue-200 bg-blue-50',
       label: 'text-blue-600',
       severity: 'WATCH',
@@ -398,7 +392,6 @@ function EnvironmentalAlerts() {
     },
     {
       type: 'Drought',
-      icon: '☀️',
       color: 'border-orange-200 bg-orange-50',
       label: 'text-orange-700',
       severity: 'HIGH',
@@ -410,7 +403,7 @@ function EnvironmentalAlerts() {
     },
     {
       type: 'Disease',
-      icon: '🦠',
+
       color: 'border-red-200 bg-red-50',
       label: 'text-red-700',
       severity: 'ALERT',
@@ -422,7 +415,7 @@ function EnvironmentalAlerts() {
     },
     {
       type: 'Disease',
-      icon: '🦠',
+
       color: 'border-red-100 bg-red-50/50',
       label: 'text-red-600',
       severity: 'WATCH',
@@ -668,7 +661,6 @@ export default function GovDashboard() {
     <div className="p-6 space-y-5">
       <div>
         <h1 className="text-xl font-bold text-gray-900">FMARD Regional Overview — {NETWORK.region}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{FARMS.length} monitored farms · Bodit sensor data · {NETWORK.period}</p>
       </div>
 
       {/* KPIs */}
@@ -703,9 +695,6 @@ export default function GovDashboard() {
       {/* Farm network table */}
       <FarmNetworkTable />
 
-      <p className="text-xs text-gray-400 text-center pb-4">
-        NDIC Platform · {FARMS.length} farms · {NETWORK.region} · Bodit behavioural sensor · {NETWORK.period}
-      </p>
     </div>
   );
 }
