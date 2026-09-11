@@ -52,6 +52,30 @@ const DISEASE_CLUSTERS = [
   { name: 'CBPP — Nasarawa',   lat: 8.55, lon: 8.4,  r: 30, disease: 'CBPP', severity: 'medium' },
 ];
 
+// Simplified Nigerian state polygons — [lat, lon] approximate boundaries
+const STATE_POLYS = [
+  { name: 'Zamfara',   fill: '#f0fdf4', pts: [[14.2,5.2],[14.2,8.2],[12.5,8.2],[11.8,7.5],[11.8,5.8],[13.0,5.4]] },
+  { name: 'Katsina',   fill: '#f0fdf4', pts: [[14.2,8.2],[14.2,9.8],[13.0,9.8],[12.5,9.2],[12.0,9.0],[12.5,8.2]] },
+  { name: 'Kano',      fill: '#f5fef7', pts: [[13.0,9.8],[13.0,11.5],[12.0,11.5],[12.0,10.2],[12.0,9.0],[12.5,9.2]] },
+  { name: 'Niger',     fill: '#e8fdf0', pts: [[14.2,5.0],[13.0,5.4],[11.8,5.8],[11.8,7.5],[12.5,8.2],[12.0,8.5],[11.0,7.8],[9.5,7.5],[9.0,7.0],[9.0,5.5],[9.5,5.0]] },
+  { name: 'Kaduna',    fill: '#e8fdf0', pts: [[12.5,8.2],[12.0,8.5],[12.0,9.0],[12.0,10.2],[11.0,11.0],[10.5,10.5],[9.5,9.2],[9.5,7.5],[11.0,7.8],[12.0,8.5]] },
+  { name: 'Bauchi',    fill: '#f0fdf4', pts: [[12.0,9.0],[12.0,11.5],[11.0,11.5],[10.5,11.2],[10.0,10.5],[9.5,9.5],[9.5,9.2],[10.5,10.5],[11.0,11.0]] },
+  { name: 'Gombe',     fill: '#f5fef7', pts: [[12.0,11.5],[11.5,11.5],[11.0,11.5],[11.5,11.5]] },
+  { name: 'Kwara',     fill: '#e8fdf0', pts: [[9.5,5.0],[9.0,5.5],[9.0,7.0],[8.5,7.2],[8.5,7.5],[8.0,7.5],[7.5,7.0],[7.5,5.5],[8.0,5.0]] },
+  { name: 'FCT',       fill: '#dbeafe', pts: [[9.3,6.8],[9.3,7.8],[8.4,7.8],[8.4,6.8]] },
+  { name: 'Kogi',      fill: '#e8fdf0', pts: [[8.5,5.0],[8.5,7.5],[8.0,7.5],[7.5,7.0],[7.5,8.5],[7.0,8.8],[6.8,7.8],[6.8,6.5],[7.0,5.5],[7.5,5.0]] },
+  { name: 'Nasarawa',  fill: '#e8fdf0', pts: [[9.5,7.5],[9.5,9.2],[9.0,9.2],[8.5,9.5],[7.5,9.0],[7.5,8.5],[8.0,7.5],[8.5,7.5]] },
+  { name: 'Plateau',   fill: '#e8fdf0', pts: [[9.5,9.2],[10.0,10.5],[10.5,11.2],[9.0,11.2],[8.5,10.5],[8.5,9.5],[9.0,9.2]] },
+  { name: 'Taraba',    fill: '#e8fdf0', pts: [[9.5,10.5],[9.0,11.2],[8.5,11.5],[7.2,11.5],[7.0,11.0],[7.0,10.0],[7.5,9.5],[8.5,9.5],[9.0,9.2],[9.5,9.5]] },
+  { name: 'Benue',     fill: '#e8fdf0', pts: [[8.5,7.5],[8.0,7.5],[7.5,8.5],[7.0,8.8],[6.8,8.0],[6.5,8.5],[6.5,9.8],[7.0,10.5],[7.5,10.5],[8.5,9.5],[8.5,7.5]] },
+  { name: 'Anambra',   fill: '#f5fef7', pts: [[7.0,6.5],[6.5,7.5],[6.8,8.0],[7.0,8.8],[7.0,6.5]] },
+  { name: 'Adamawa',   fill: '#f5fef7', pts: [[9.0,11.5],[9.0,12.0],[8.0,12.5],[7.5,11.5],[8.5,11.5]] },
+];
+
+function toSVGPoints(pts) {
+  return pts.map(([lat, lon]) => `${lonToX(lon).toFixed(1)},${latToY(lat).toFixed(1)}`).join(' ');
+}
+
 // NiMet-style weather warnings for North Central Nigeria
 const WEATHER_WARNINGS = [
   {
@@ -198,8 +222,8 @@ function RegionalMap() {
     <div className="bg-white rounded-lg border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div>
-          <p className="text-sm font-semibold text-gray-900">Regional Overview — North Central Nigeria</p>
-          <p className="text-xs text-gray-400">Farm locations · disease clusters · environmental hazards</p>
+          <p className="text-sm font-semibold text-gray-900">Nigeria — Regional Map</p>
+          <p className="text-xs text-gray-400">State boundaries · farm locations · disease clusters · environmental hazards</p>
         </div>
         <div className="flex gap-1 flex-wrap">
           {[['all','All'], ['farms','Farms'], ['disease','Disease'], ['flood','Floods'], ['drought','Drought']].map(([v, l]) => (
@@ -222,13 +246,32 @@ function RegionalMap() {
       </div>
 
       <div className="relative overflow-x-auto">
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 340, background: '#f0f7ee', borderRadius: 6, border: '1px solid #e5e7eb' }}>
-          {/* Background grid */}
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: 360, borderRadius: 6, border: '1px solid #e5e7eb' }}>
+          <defs>
+            <clipPath id="mapClip"><rect x={0} y={0} width={W} height={H} /></clipPath>
+          </defs>
+
+          {/* Ocean / outer background */}
+          <rect x={0} y={0} width={W} height={H} fill="#c8e6f5" />
+
+          {/* Nigerian state polygons */}
+          <g clipPath="url(#mapClip)">
+            {STATE_POLYS.map(s => (
+              <polygon key={s.name}
+                points={toSVGPoints(s.pts)}
+                fill={s.fill}
+                stroke="#9ecfb0"
+                strokeWidth={0.8}
+              />
+            ))}
+          </g>
+
+          {/* Subtle lat/lon grid over the map */}
           {[7,8,9,10,11,12].map(lat => (
-            <line key={lat} x1={0} y1={latToY(lat)} x2={W} y2={latToY(lat)} stroke="#d1fae5" strokeWidth={0.5} />
+            <line key={lat} x1={0} y1={latToY(lat)} x2={W} y2={latToY(lat)} stroke="#a7d9c0" strokeWidth={0.3} opacity={0.5} />
           ))}
           {[6,7,8,9,10,11].map(lon => (
-            <line key={lon} x1={lonToX(lon)} y1={0} x2={lonToX(lon)} y2={H} stroke="#d1fae5" strokeWidth={0.5} />
+            <line key={lon} x1={lonToX(lon)} y1={0} x2={lonToX(lon)} y2={H} stroke="#a7d9c0" strokeWidth={0.3} opacity={0.5} />
           ))}
 
           {/* Flood zones */}
