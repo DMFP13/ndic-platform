@@ -613,6 +613,8 @@ export default function ResearchCowPassport() {
   const base = useMemo(() => getCowMockData(cowId), [cowId]);
   const [cvOpen, setCvOpen] = useState(false);
 
+  useEffect(() => { window.scrollTo(0, 0); }, [cowId]);
+
   const storageKey = `passport_${cowId}`;
   const loadOverrides = () => {
     try { return JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { return {}; }
