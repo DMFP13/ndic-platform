@@ -129,7 +129,7 @@ function MarketPrices() {
 }
 
 // ── Herd table ─────────────────────────────────────────────────────────────
-function HerdTable() {
+function HerdTable({ basePath = '/research' }) {
   const navigate = useNavigate();
   const [sort, setSort] = useState('total_heat_detections');
   const sorted = useMemo(
@@ -171,7 +171,7 @@ function HerdTable() {
               <tr
                 key={cow.cow_id}
                 className="border-t border-gray-50 hover:bg-blue-50 transition-colors cursor-pointer"
-                onClick={() => navigate(`/research/animals/${cow.cow_id}`)}
+                onClick={() => navigate(`${basePath}/animals/${cow.cow_id}`)}
               >
                 <td className="px-3 py-2 font-mono text-xs text-gray-700">{cow.cow_id}</td>
                 <td className="px-3 py-2 text-right">
@@ -189,7 +189,7 @@ function HerdTable() {
                 <td className="px-3 py-2 text-right text-gray-500">{cow.total_coughing}</td>
                 <td className="px-3 py-2">
                   <button
-                    onClick={e => { e.stopPropagation(); navigate(`/research/animals/${cow.cow_id}`); }}
+                    onClick={e => { e.stopPropagation(); navigate(`${basePath}/animals/${cow.cow_id}`); }}
                     className="px-2 py-1 rounded text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors whitespace-nowrap"
                   >
                     Passport →
@@ -466,7 +466,7 @@ function RangeToggle({ value, onChange }) {
 }
 
 // ── Main dashboard ─────────────────────────────────────────────────────────
-export default function ResearchDashboard({ lat, lon, locationName }) {
+export default function ResearchDashboard({ lat, lon, locationName, basePath = '/research' }) {
   const [range, setRange] = useState(60);
 
   const totalHeatDet = RESEARCH.cow_summary.reduce((s, c) => s + c.total_heat_detections, 0);
@@ -516,7 +516,7 @@ export default function ResearchDashboard({ lat, lon, locationName }) {
       <HeatDetectionChart range={range} />
 
       {/* Herd table */}
-      <HerdTable />
+      <HerdTable basePath={basePath} />
 
       {/* P4 cycle panel */}
       <P4CyclePanel />
