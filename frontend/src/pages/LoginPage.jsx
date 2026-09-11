@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const DEMO_ACCOUNTS = [
-  { role: 'farm_manager',         label: 'Farm Manager',      email: 'farm@ndic.ng',      desc: 'Herd health, AI insights, milk yield' },
-  { role: 'govt_analyst',         label: 'FMARD Analyst',     email: 'govt@ndic.ng',       desc: 'Disease map, production trends, alerts' },
-  { role: 'lender_analyst',       label: 'Lender Analyst',    email: 'lender@ndic.ng',     desc: 'Portfolio risk, collateral valuation' },
-  { role: 'processor_analyst',    label: 'Processor Analyst', email: 'processor@ndic.ng',  desc: 'Supply forecast, supplier benchmarking' },
+  { role: 'farm_manager',         label: 'Farm Manager',      email: 'farm@ndic.ng',        desc: 'Herd health, AI insights, milk yield' },
+  { role: 'govt_analyst',         label: 'FMARD Analyst',     email: 'govt@ndic.ng',         desc: 'Disease map, production trends, alerts' },
+  { role: 'lender_analyst',       label: 'Lender Analyst',    email: 'lender@ndic.ng',       desc: 'Portfolio risk, collateral valuation' },
+  { role: 'processor_analyst',    label: 'Processor Analyst', email: 'processor@ndic.ng',    desc: 'Supply forecast, supplier benchmarking' },
+  { role: 'research_analyst',     label: 'Research Dashboard', email: 'research@ndic.ng',   desc: 'Bodit sensors · P4 Rapid · live weather & markets' },
 ];
 
 function getRoleRoute(role) {
@@ -15,6 +16,7 @@ function getRoleRoute(role) {
   if (role === 'govt_analyst' || role === 'govt_admin') return '/government';
   if (role === 'lender_analyst') return '/lender';
   if (role === 'arpexas_admin') return '/government';
+  if (role === 'research_analyst') return '/research';
   return '/login';
 }
 

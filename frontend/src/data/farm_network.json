@@ -1,0 +1,206 @@
+{
+  "region": "North Central Nigeria",
+  "period": "2025-04-08 to 2025-09-29",
+  "farms": [
+    {
+      "id": "NCN-001", "name": "Plateau Highland Dairy", "owner": "Ibrahim Musa Danladi",
+      "state": "Plateau", "lga": "Jos North", "lat": 9.92, "lon": 8.89,
+      "tier": "high", "herd_size": 20, "sensor_days": 175, "data_source": "bodit_sensor",
+      "avg_activity_rate": 74.2, "avg_rumination_min": 300, "avg_eating_min": 170,
+      "avg_milk_yield_L": 18.5, "total_heat_detections": 954, "disease_events": 2, "coughing_index": 1.1,
+      "risk_score": 82, "risk_grade": "A", "loan_NGN": 2500000, "collateral_NGN": 8800000,
+      "monthly_milk_L": [17.8, 18.2, 18.5, 18.9, 18.7, 18.5],
+      "notes": "Bodit sensor monitored · P4 Rapid tested"
+    },
+    {
+      "id": "NCN-002", "name": "Kaduna Premium Livestock", "owner": "Aminu Sani Bello",
+      "state": "Kaduna", "lga": "Kachia", "lat": 9.87, "lon": 7.95,
+      "tier": "high", "herd_size": 25, "sensor_days": 168,
+      "avg_activity_rate": 78.5, "avg_rumination_min": 338, "avg_eating_min": 192,
+      "avg_milk_yield_L": 19.8, "total_heat_detections": 1120, "disease_events": 1, "coughing_index": 0.7,
+      "risk_score": 89, "risk_grade": "A", "loan_NGN": 3500000, "collateral_NGN": 13200000,
+      "monthly_milk_L": [19.2, 19.5, 19.8, 20.1, 20.0, 19.8],
+      "notes": "Award-winning herd · HF cross"
+    },
+    {
+      "id": "NCN-003", "name": "Jos Valley Dairy", "owner": "Grace Pam",
+      "state": "Plateau", "lga": "Jos South", "lat": 9.78, "lon": 8.96,
+      "tier": "high", "herd_size": 18, "sensor_days": 162,
+      "avg_activity_rate": 76.3, "avg_rumination_min": 325, "avg_eating_min": 183,
+      "avg_milk_yield_L": 18.1, "total_heat_detections": 780, "disease_events": 2, "coughing_index": 0.9,
+      "risk_score": 85, "risk_grade": "A", "loan_NGN": 2000000, "collateral_NGN": 8100000,
+      "monthly_milk_L": [17.5, 17.8, 18.1, 18.3, 18.2, 18.1],
+      "notes": "Long-standing co-operative member"
+    },
+    {
+      "id": "NCN-004", "name": "Keffi Agro-Pastoral Ltd", "owner": "Yakubu Ademu",
+      "state": "Nasarawa", "lga": "Keffi", "lat": 8.85, "lon": 7.87,
+      "tier": "high", "herd_size": 20, "sensor_days": 175,
+      "avg_activity_rate": 80.1, "avg_rumination_min": 355, "avg_eating_min": 198,
+      "avg_milk_yield_L": 21.2, "total_heat_detections": 1041, "disease_events": 0, "coughing_index": 0.5,
+      "risk_score": 93, "risk_grade": "A+", "loan_NGN": 4000000, "collateral_NGN": 16000000,
+      "monthly_milk_L": [20.5, 20.8, 21.2, 21.5, 21.3, 21.2],
+      "notes": "Best in region · disease-free period"
+    },
+    {
+      "id": "NCN-005", "name": "Minna Modern Dairy", "owner": "Usman Bature",
+      "state": "Niger", "lga": "Bosso", "lat": 9.62, "lon": 6.55,
+      "tier": "high", "herd_size": 28, "sensor_days": 170,
+      "avg_activity_rate": 77.8, "avg_rumination_min": 341, "avg_eating_min": 188,
+      "avg_milk_yield_L": 20.4, "total_heat_detections": 1380, "disease_events": 1, "coughing_index": 0.8,
+      "risk_score": 88, "risk_grade": "A", "loan_NGN": 5000000, "collateral_NGN": 18000000,
+      "monthly_milk_L": [19.8, 20.1, 20.4, 20.7, 20.5, 20.4],
+      "notes": "Largest high-tier herd in region"
+    },
+    {
+      "id": "NCN-006", "name": "Abuja Peri-urban Dairy", "owner": "Ngozi Eze",
+      "state": "FCT", "lga": "Gwagwalada", "lat": 8.94, "lon": 7.10,
+      "tier": "medium", "herd_size": 15, "sensor_days": 155,
+      "avg_activity_rate": 72.4, "avg_rumination_min": 308, "avg_eating_min": 172,
+      "avg_milk_yield_L": 16.5, "total_heat_detections": 540, "disease_events": 3, "coughing_index": 1.3,
+      "risk_score": 75, "risk_grade": "B", "loan_NGN": 1800000, "collateral_NGN": 5500000,
+      "monthly_milk_L": [16.0, 16.3, 16.5, 16.8, 16.4, 16.5],
+      "notes": "Urban proximity improves market access"
+    },
+    {
+      "id": "NCN-007", "name": "Zonkwa Cattle Ranch", "owner": "Daniel Maikudi",
+      "state": "Kaduna", "lga": "Zangon Kataf", "lat": 9.79, "lon": 8.28,
+      "tier": "medium", "herd_size": 20, "sensor_days": 148,
+      "avg_activity_rate": 68.9, "avg_rumination_min": 291, "avg_eating_min": 161,
+      "avg_milk_yield_L": 15.2, "total_heat_detections": 610, "disease_events": 4, "coughing_index": 1.8,
+      "risk_score": 70, "risk_grade": "B", "loan_NGN": 2200000, "collateral_NGN": 6200000,
+      "monthly_milk_L": [15.5, 15.2, 15.0, 15.2, 14.9, 15.2],
+      "notes": "Mild FMD incidence Q2 — recovering"
+    },
+    {
+      "id": "NCN-008", "name": "Kafanchan Dairy Cooperative", "owner": "Sarah Agwam",
+      "state": "Kaduna", "lga": "Jema'a", "lat": 9.59, "lon": 8.30,
+      "tier": "medium", "herd_size": 17, "sensor_days": 160,
+      "avg_activity_rate": 71.3, "avg_rumination_min": 305, "avg_eating_min": 169,
+      "avg_milk_yield_L": 14.8, "total_heat_detections": 580, "disease_events": 3, "coughing_index": 1.5,
+      "risk_score": 73, "risk_grade": "B", "loan_NGN": 1500000, "collateral_NGN": 4900000,
+      "monthly_milk_L": [14.5, 14.8, 14.9, 15.0, 14.7, 14.8],
+      "notes": "Co-op of 3 smallholder households"
+    },
+    {
+      "id": "NCN-009", "name": "Lafia Livestock Holdings", "owner": "Emmanuel Haruna",
+      "state": "Nasarawa", "lga": "Lafia", "lat": 8.49, "lon": 8.52,
+      "tier": "medium", "herd_size": 14, "sensor_days": 142,
+      "avg_activity_rate": 66.7, "avg_rumination_min": 278, "avg_eating_min": 155,
+      "avg_milk_yield_L": 13.9, "total_heat_detections": 390, "disease_events": 5, "coughing_index": 2.1,
+      "risk_score": 65, "risk_grade": "B-", "loan_NGN": 1200000, "collateral_NGN": 3600000,
+      "monthly_milk_L": [14.2, 14.0, 13.8, 13.9, 14.1, 13.9],
+      "notes": "Elevated coughing events — vet notified"
+    },
+    {
+      "id": "NCN-010", "name": "Gboko Agrovet Farm", "owner": "Terver Iorliam",
+      "state": "Benue", "lga": "Gboko", "lat": 7.33, "lon": 9.00,
+      "tier": "medium", "herd_size": 19, "sensor_days": 165,
+      "avg_activity_rate": 73.5, "avg_rumination_min": 312, "avg_eating_min": 174,
+      "avg_milk_yield_L": 16.8, "total_heat_detections": 670, "disease_events": 2, "coughing_index": 1.2,
+      "risk_score": 76, "risk_grade": "B", "loan_NGN": 2000000, "collateral_NGN": 6700000,
+      "monthly_milk_L": [16.4, 16.6, 16.8, 17.0, 16.9, 16.8],
+      "notes": "Good performance trend"
+    },
+    {
+      "id": "NCN-011", "name": "Makurdi Valley Dairy", "owner": "Blessing Igba",
+      "state": "Benue", "lga": "Makurdi", "lat": 7.73, "lon": 8.54,
+      "tier": "medium", "herd_size": 16, "sensor_days": 138,
+      "avg_activity_rate": 65.2, "avg_rumination_min": 271, "avg_eating_min": 149,
+      "avg_milk_yield_L": 13.1, "total_heat_detections": 420, "disease_events": 6, "coughing_index": 2.4,
+      "risk_score": 62, "risk_grade": "C+", "loan_NGN": 1400000, "collateral_NGN": 3500000,
+      "monthly_milk_L": [13.5, 13.2, 13.0, 13.1, 12.9, 13.1],
+      "notes": "Slight downward trend — feed quality issue"
+    },
+    {
+      "id": "NCN-012", "name": "Lokoja River Farm", "owner": "Abubakar Yahaya",
+      "state": "Kogi", "lga": "Lokoja", "lat": 7.80, "lon": 6.74,
+      "tier": "medium", "herd_size": 12, "sensor_days": 151,
+      "avg_activity_rate": 70.8, "avg_rumination_min": 299, "avg_eating_min": 166,
+      "avg_milk_yield_L": 14.3, "total_heat_detections": 360, "disease_events": 4, "coughing_index": 1.7,
+      "risk_score": 67, "risk_grade": "B-", "loan_NGN": 900000, "collateral_NGN": 2600000,
+      "monthly_milk_L": [14.0, 14.2, 14.3, 14.5, 14.2, 14.3],
+      "notes": "Smaller herd, stable performance"
+    },
+    {
+      "id": "NCN-013", "name": "Suleja Dairy Estate", "owner": "Halima Abdullahi",
+      "state": "Niger", "lga": "Suleja", "lat": 9.18, "lon": 7.18,
+      "tier": "medium", "herd_size": 21, "sensor_days": 158,
+      "avg_activity_rate": 74.0, "avg_rumination_min": 318, "avg_eating_min": 178,
+      "avg_milk_yield_L": 16.2, "total_heat_detections": 720, "disease_events": 3, "coughing_index": 1.3,
+      "risk_score": 74, "risk_grade": "B", "loan_NGN": 2100000, "collateral_NGN": 6200000,
+      "monthly_milk_L": [15.8, 16.0, 16.2, 16.4, 16.3, 16.2],
+      "notes": "Proximity to Abuja improves off-take"
+    },
+    {
+      "id": "NCN-014", "name": "Funtua Dairy Co.", "owner": "Musa Lawal",
+      "state": "Katsina", "lga": "Funtua", "lat": 11.52, "lon": 7.32,
+      "tier": "medium", "herd_size": 18, "sensor_days": 145,
+      "avg_activity_rate": 67.8, "avg_rumination_min": 285, "avg_eating_min": 158,
+      "avg_milk_yield_L": 14.0, "total_heat_detections": 490, "disease_events": 5, "coughing_index": 2.2,
+      "risk_score": 64, "risk_grade": "B-", "loan_NGN": 1600000, "collateral_NGN": 4000000,
+      "monthly_milk_L": [14.3, 14.1, 13.9, 14.0, 13.8, 14.0],
+      "notes": "Slight decline — dry season stress"
+    },
+    {
+      "id": "NCN-015", "name": "Idah Agro Farm", "owner": "Peter Ocholi",
+      "state": "Kogi", "lga": "Idah", "lat": 7.10, "lon": 6.73,
+      "tier": "medium", "herd_size": 13, "sensor_days": 140,
+      "avg_activity_rate": 63.4, "avg_rumination_min": 268, "avg_eating_min": 147,
+      "avg_milk_yield_L": 12.5, "total_heat_detections": 310, "disease_events": 6, "coughing_index": 2.5,
+      "risk_score": 59, "risk_grade": "C", "loan_NGN": 800000, "collateral_NGN": 1900000,
+      "monthly_milk_L": [12.8, 12.6, 12.4, 12.5, 12.3, 12.5],
+      "notes": "At threshold — recommend advisory visit"
+    },
+    {
+      "id": "NCN-016", "name": "Okene Rural Dairy", "owner": "James Ogundele",
+      "state": "Kogi", "lga": "Okene", "lat": 7.55, "lon": 6.24,
+      "tier": "low", "herd_size": 10, "sensor_days": 122,
+      "avg_activity_rate": 58.2, "avg_rumination_min": 248, "avg_eating_min": 135,
+      "avg_milk_yield_L": 10.8, "total_heat_detections": 180, "disease_events": 8, "coughing_index": 3.2,
+      "risk_score": 51, "risk_grade": "C-", "loan_NGN": 600000, "collateral_NGN": 1200000,
+      "monthly_milk_L": [11.2, 11.0, 10.8, 10.5, 10.6, 10.8],
+      "notes": "Declining trend — 1 payment arrear"
+    },
+    {
+      "id": "NCN-017", "name": "Kontagora Livestock", "owner": "Idris Nagwamatse",
+      "state": "Niger", "lga": "Kontagora", "lat": 10.40, "lon": 5.47,
+      "tier": "low", "herd_size": 14, "sensor_days": 110,
+      "avg_activity_rate": 52.7, "avg_rumination_min": 225, "avg_eating_min": 122,
+      "avg_milk_yield_L": 9.5, "total_heat_detections": 210, "disease_events": 9, "coughing_index": 3.8,
+      "risk_score": 44, "risk_grade": "D", "loan_NGN": 700000, "collateral_NGN": 980000,
+      "monthly_milk_L": [10.1, 9.8, 9.5, 9.3, 9.4, 9.5],
+      "notes": "⚠ High disease burden · vet intervention needed"
+    },
+    {
+      "id": "NCN-018", "name": "Nasko Pastoral Farm", "owner": "Salihu Dantani",
+      "state": "Niger", "lga": "Mariga", "lat": 10.01, "lon": 5.90,
+      "tier": "low", "herd_size": 11, "sensor_days": 118,
+      "avg_activity_rate": 55.3, "avg_rumination_min": 238, "avg_eating_min": 130,
+      "avg_milk_yield_L": 10.1, "total_heat_detections": 195, "disease_events": 7, "coughing_index": 3.0,
+      "risk_score": 48, "risk_grade": "D+", "loan_NGN": 500000, "collateral_NGN": 900000,
+      "monthly_milk_L": [10.4, 10.2, 10.1, 9.9, 10.0, 10.1],
+      "notes": "Fodder quality concern flagged"
+    },
+    {
+      "id": "NCN-019", "name": "Keana Cattle Farm", "owner": "Comfort Aduku",
+      "state": "Nasarawa", "lga": "Keana", "lat": 8.13, "lon": 8.73,
+      "tier": "low", "herd_size": 12, "sensor_days": 105,
+      "avg_activity_rate": 49.8, "avg_rumination_min": 211, "avg_eating_min": 115,
+      "avg_milk_yield_L": 8.7, "total_heat_detections": 145, "disease_events": 11, "coughing_index": 4.5,
+      "risk_score": 40, "risk_grade": "D", "loan_NGN": 450000, "collateral_NGN": 620000,
+      "monthly_milk_L": [9.2, 9.0, 8.8, 8.7, 8.5, 8.7],
+      "notes": "⚠ High coughing index · CBPP investigation open"
+    },
+    {
+      "id": "NCN-020", "name": "Wukari Dairy Cooperative", "owner": "John Atong",
+      "state": "Taraba", "lga": "Wukari", "lat": 7.87, "lon": 9.78,
+      "tier": "low", "herd_size": 9, "sensor_days": 98,
+      "avg_activity_rate": 44.5, "avg_rumination_min": 198, "avg_eating_min": 108,
+      "avg_milk_yield_L": 7.9, "total_heat_detections": 112, "disease_events": 13, "coughing_index": 5.1,
+      "risk_score": 33, "risk_grade": "E", "loan_NGN": 350000, "collateral_NGN": 420000,
+      "monthly_milk_L": [8.5, 8.3, 8.0, 7.9, 7.7, 7.9],
+      "notes": "⚠ Lowest performer · restructuring underway"
+    }
+  ]
+}

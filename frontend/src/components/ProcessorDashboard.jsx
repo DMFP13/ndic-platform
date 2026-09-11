@@ -1,375 +1,267 @@
-import React, { useState, useEffect, useCallback, useId } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  Area, AreaChart, ReferenceLine,
+  BarChart, Bar, LineChart, Line, ComposedChart, Area,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, Cell, ReferenceLine,
 } from 'recharts';
-import { RefreshCw, ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import Card from './shared/Card.jsx';
-import MetricCard from './shared/MetricCard.jsx';
-import AlertBox from './shared/AlertBox.jsx';
-import StatusBadge from './shared/StatusBadge.jsx';
-import Spinner from './shared/Spinner.jsx';
-import { getSupplyForecast, getBenchmarking, getCostAnalysis } from '../api/endpoints.js';
-import { useAuth } from '../context/AuthContext.jsx';
+import NETWORK from '../data/farm_network.json';
 
-function SectionError({ onRetry }) {
+// Processor sources from 12 farms (top performers, sorted by daily volume)
+const SUPPLIERS = [...NETWORK.farms]
+  .sort((a, b) => (b.herd_size * b.avg_milk_yield_L) - (a.herd_size * a.avg_milk_yield_L))
+  .slice(0, 12);
+
+const MONTHS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+
+function KPI({ label, value, sub, color = 'text-blue-700' }) {
   return (
-    <div className="flex flex-col items-center py-8 gap-2">
-      <p className="text-sm text-gray-500">Data unavailable</p>
-      <button onClick={onRetry} className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-        <RefreshCw size={12} /> Retry
-      </button>
+    <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <p className="text-xs text-gray-500 font-medium">{label}</p>
+      <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
+      {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </div>
   );
 }
 
-// Section A: Supply Forecast
-function SupplyForecast({ forecastData }) {
-  const gradientId = useId();
+// Reliability score: based on activity consistency and disease events
+function reliabilityScore(farm) {
+  const actScore = Math.min(100, farm.avg_activity_rate * 1.2);
+  const diseaseDeduction = farm.disease_events * 4;
+  const varianceDeduction = farm.tier === 'high' ? 0 : farm.tier === 'medium' ? 8 : 18;
+  return Math.max(0, Math.round(actScore - diseaseDeduction - varianceDeduction));
+}
 
-  if (!forecastData || forecastData.length === 0) return null;
-
-  const first = forecastData[0]?.forecast || 0;
-  const last = forecastData[forecastData.length - 1]?.forecast || 0;
-  const changePct = first > 0 ? (((last - first) / first) * 100).toFixed(1) : 0;
-  const insight = changePct > 0
-    ? `Forecast trending up ${changePct}% over the 30-day window.`
-    : changePct < 0
-    ? `Forecast trending down ${Math.abs(changePct)}% — consider supplier outreach.`
-    : 'Forecast stable over the 30-day window.';
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-white border border-gray-200 rounded p-2 text-xs shadow-sm">
-        <p className="font-semibold text-gray-700 mb-1">Day {label}</p>
-        {payload.map((p) => (
-          <p key={p.dataKey} style={{ color: p.color }}>{p.name}: {(p.value || 0).toLocaleString()} L</p>
-        ))}
-      </div>
-    );
-  };
+function SupplyVolumeChart() {
+  const data = MONTHS.map((m, i) => {
+    const entry = { month: m };
+    let total = 0;
+    SUPPLIERS.forEach(f => {
+      const vol = Math.round(f.herd_size * f.monthly_milk_L[i]);
+      total += vol;
+    });
+    entry.total = total;
+    entry.high = Math.round(SUPPLIERS.filter(f=>f.tier==='high').reduce((s,f)=>s+f.herd_size*f.monthly_milk_L[i],0));
+    entry.medium = Math.round(SUPPLIERS.filter(f=>f.tier==='medium').reduce((s,f)=>s+f.herd_size*f.monthly_milk_L[i],0));
+    return entry;
+  });
 
   return (
-    <div>
-      <p className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded px-3 py-1.5 mb-3 font-medium">{insight}</p>
-      <ResponsiveContainer width="100%" height={240}>
-        <AreaChart data={forecastData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-          <defs>
-            <linearGradient id={`${gradientId}-ci`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#BFDBFE" stopOpacity={0.5} />
-              <stop offset="95%" stopColor="#BFDBFE" stopOpacity={0.05} />
-            </linearGradient>
-            <linearGradient id={`${gradientId}-hist`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#E5E7EB" stopOpacity={0.5} />
-              <stop offset="95%" stopColor="#E5E7EB" stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-          <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(v) => `D${v}`} interval={4} />
-          <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(v) => `${(v / 1000).toFixed(1)}k`} />
-          <Tooltip content={<CustomTooltip />} />
-          <Area type="monotone" dataKey="upper" stackId="ci" stroke="none" fill={`url(#${gradientId}-ci)`} name="Upper bound" />
-          <Area type="monotone" dataKey="lower" stackId="ci" stroke="none" fill="white" name="Lower bound" />
-          <Area type="monotone" dataKey="historical" stroke="#9CA3AF" strokeWidth={1.5} fill={`url(#${gradientId}-hist)`} strokeDasharray="4 2" name="Historical" dot={false} connectNulls={false} />
-          <Line type="monotone" dataKey="forecast" stroke="#2563EB" strokeWidth={2} dot={false} name="Forecast" />
-        </AreaChart>
+    <div className="bg-white rounded-lg border border-gray-200 p-5">
+      <p className="text-sm font-semibold text-gray-900 mb-1">Daily Supply Volume — Apr–Sep 2025</p>
+      <p className="text-xs text-gray-400 mb-3">Stacked by supplier tier · litres/day · {SUPPLIERS.length} active suppliers</p>
+      <ResponsiveContainer width="100%" height={190}>
+        <BarChart data={data} margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+          <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${(v/1000).toFixed(1)}k`} />
+          <Tooltip formatter={(v, n) => [`${v.toLocaleString()} L`, n]} />
+          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Bar dataKey="high" name="High-tier suppliers" stackId="a" fill="#16a34a" />
+          <Bar dataKey="medium" name="Medium-tier suppliers" stackId="a" fill="#f59e0b" radius={[2,2,0,0]} />
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
 }
 
-// Section B: Supply Sources Table
-function SupplySourcesTable({ suppliers }) {
-  const [expandedRow, setExpandedRow] = useState(null);
-
-  if (!suppliers || suppliers.length === 0) return <p className="text-sm text-gray-500">No supplier data.</p>;
+function SupplierTable() {
+  const [sort, setSort] = useState('volume');
+  const sorted = useMemo(() => {
+    return [...SUPPLIERS].sort((a, b) => {
+      if (sort === 'volume') return (b.herd_size * b.avg_milk_yield_L) - (a.herd_size * a.avg_milk_yield_L);
+      if (sort === 'reliability') return reliabilityScore(b) - reliabilityScore(a);
+      if (sort === 'activity') return b.avg_activity_rate - a.avg_activity_rate;
+      return 0;
+    });
+  }, [sort]);
 
   return (
-    <div className="overflow-x-auto table-scroll">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-200">
-            <th className="text-left py-2 px-2 text-xs font-semibold text-gray-600">Supplier</th>
-            <th className="text-left py-2 px-2 text-xs font-semibold text-gray-600">Location</th>
-            <th className="text-right py-2 px-2 text-xs font-semibold text-gray-600">Daily Avg (L)</th>
-            <th className="text-left py-2 px-2 text-xs font-semibold text-gray-600">Health</th>
-            <th className="text-right py-2 px-2 text-xs font-semibold text-gray-600">Trend</th>
-          </tr>
-        </thead>
-        <tbody>
-          {suppliers.map((s) => (
-            <React.Fragment key={s.id}>
-              <tr
-                className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
-                onClick={() => setExpandedRow(expandedRow === s.id ? null : s.id)}
-              >
-                <td className="py-2 px-2 font-medium text-gray-900">{s.name}</td>
-                <td className="py-2 px-2 text-gray-500">{s.location}</td>
-                <td className="py-2 px-2 text-right tabular-nums text-gray-700">{(s.daily_avg || 0).toLocaleString()}</td>
-                <td className="py-2 px-2">
-                  <span className={`inline-flex items-center gap-1 text-xs font-medium ${s.health_status === 'healthy' ? 'text-green-700' : 'text-amber-700'}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.health_status === 'healthy' ? 'bg-green-500' : 'bg-amber-500'}`} />
-                    {s.health_status === 'healthy' ? 'Healthy' : 'At Risk'}
-                  </span>
-                </td>
-                <td className="py-2 px-2 text-right">
-                  <span className={`text-xs font-medium ${s.trend > 0 ? 'text-green-600' : s.trend < 0 ? 'text-red-600' : 'text-gray-500'}`}>
-                    {s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '→'} {s.trend > 0 ? '+' : ''}{s.trend}%
-                  </span>
-                </td>
-              </tr>
-              {expandedRow === s.id && s.quality_grade && (
-                <tr className="bg-gray-50">
-                  <td colSpan={5} className="px-4 py-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-2">Quality Grade Distribution</p>
-                    <div className="flex items-center gap-2">
-                      {Object.entries(s.quality_grade).map(([grade, pct]) => (
-                        <div key={grade} className="flex-1">
-                          <div className="flex justify-between text-xs text-gray-600 mb-1">
-                            <span>Grade {grade}</span>
-                            <span>{pct}%</span>
-                          </div>
-                          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${grade === 'A' ? 'bg-green-500' : grade === 'B' ? 'bg-blue-400' : 'bg-amber-400'}`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+        <p className="text-sm font-semibold text-gray-900">Supplier Benchmarking — {SUPPLIERS.length} Farms</p>
+        <select className="text-xs border border-gray-200 rounded px-2 py-1" value={sort} onChange={e => setSort(e.target.value)}>
+          <option value="volume">Sort: Daily volume</option>
+          <option value="reliability">Sort: Reliability</option>
+          <option value="activity">Sort: Herd activity</option>
+        </select>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">Supplier</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Herd</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">L/cow/day</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Daily Vol (L)</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Activity %</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Rumination</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Disease Events</th>
+              <th className="px-4 py-2 text-right text-xs font-semibold text-gray-500">Reliability</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((f, i) => {
+              const dailyVol = Math.round(f.herd_size * f.avg_milk_yield_L);
+              const rel = reliabilityScore(f);
+              return (
+                <tr key={f.id} className={`border-t border-gray-50 ${i % 2 ? 'bg-gray-50/30' : ''}`}>
+                  <td className="px-4 py-2">
+                    <p className="text-xs font-semibold text-gray-800">{f.name}</p>
+                    <p className="text-xs text-gray-400">{f.state} · {f.id}</p>
+                  </td>
+                  <td className="px-4 py-2 text-right text-sm text-gray-700">{f.herd_size}</td>
+                  <td className="px-4 py-2 text-right text-sm text-gray-700">{f.avg_milk_yield_L.toFixed(1)}</td>
+                  <td className="px-4 py-2 text-right text-sm font-bold text-blue-700">{dailyVol.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right">
+                    <span className={`text-sm font-semibold ${f.avg_activity_rate > 70 ? 'text-green-700' : f.avg_activity_rate > 55 ? 'text-amber-700' : 'text-red-600'}`}>
+                      {f.avg_activity_rate.toFixed(1)}%
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 text-right text-sm text-gray-600">{f.avg_rumination_min} min</td>
+                  <td className="px-4 py-2 text-right">
+                    <span className={`text-sm ${f.disease_events >= 5 ? 'text-red-600 font-semibold' : 'text-gray-600'}`}>{f.disease_events}</span>
+                  </td>
+                  <td className="px-4 py-2 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <div className="w-12 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="h-full rounded-full"
+                          style={{ width: `${rel}%`, background: rel >= 75 ? '#16a34a' : rel >= 55 ? '#f59e0b' : '#dc2626' }} />
+                      </div>
+                      <span className={`text-xs font-semibold ${rel >= 75 ? 'text-green-700' : rel >= 55 ? 'text-amber-700' : 'text-red-600'}`}>{rel}</span>
                     </div>
                   </td>
                 </tr>
-              )}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="px-5 py-2 text-xs text-gray-400 border-t border-gray-50">
+        Reliability = sensor-derived composite: activity rate, disease events, tier variance · higher = more consistent supply
+      </p>
     </div>
   );
 }
 
-// Section C: Benchmarking
-function BenchmarkingSection({ data }) {
-  if (!data) return null;
-
-  const rows = [
-    { label: 'Daily Volume (L)', your: data.your_metrics?.daily_volume, peer: data.peer_median?.daily_volume, best: data.best_in_class?.daily_volume, higherIsBetter: true },
-    { label: 'Avg Quality Grade', your: data.your_metrics?.avg_quality_grade, peer: data.peer_median?.avg_quality_grade, best: data.best_in_class?.avg_quality_grade, higherIsBetter: true },
-    { label: 'Price Paid (NGN/L)', your: data.your_metrics?.price_paid, peer: data.peer_median?.price_paid, best: data.best_in_class?.price_paid, higherIsBetter: false },
+function SupplyForecast() {
+  // Forecast Sep–Dec based on trend
+  const historical = MONTHS.map((m, i) => ({
+    month: m,
+    actual: Math.round(SUPPLIERS.reduce((s,f) => s+f.herd_size*f.monthly_milk_L[i], 0)),
+  }));
+  const lastActual = historical[historical.length - 1].actual;
+  const trend = (historical[5].actual - historical[0].actual) / 5; // L/month change
+  const forecast = [
+    { month: 'Oct', forecast: Math.round(lastActual + trend * 1), lower: Math.round(lastActual + trend * 1 - 300), upper: Math.round(lastActual + trend * 1 + 300) },
+    { month: 'Nov', forecast: Math.round(lastActual + trend * 2), lower: Math.round(lastActual + trend * 2 - 500), upper: Math.round(lastActual + trend * 2 + 500) },
+    { month: 'Dec', forecast: Math.round(lastActual + trend * 3), lower: Math.round(lastActual + trend * 3 - 700), upper: Math.round(lastActual + trend * 3 + 700) },
+  ];
+  const combined = [
+    ...historical,
+    ...forecast.map(f => ({ month: f.month, forecast: f.forecast, lower: f.lower, upper: f.upper })),
   ];
 
-  function getColor(your, peer, higherIsBetter) {
-    if (typeof your !== 'number' || typeof peer !== 'number') return 'text-gray-700';
-    const better = higherIsBetter ? your >= peer : your <= peer;
-    return better ? 'text-green-700 font-semibold' : 'text-red-700 font-semibold';
-  }
-
   return (
-    <div>
-      <div className="grid grid-cols-3 gap-0 mb-2">
-        {['Your Metrics', 'Peer Median', 'Best in Class'].map((h) => (
-          <div key={h} className="text-center text-xs font-semibold text-gray-600 py-1.5 border-b border-gray-200">{h}</div>
-        ))}
-      </div>
-      {rows.map((row) => (
-        <div key={row.label} className="grid grid-cols-3 gap-0 border-b border-gray-100 last:border-0">
-          <div className="col-span-3 text-xs text-gray-500 pt-2 pb-0.5 px-1">{row.label}</div>
-          <div className={`text-sm py-1 px-1 text-center ${getColor(row.your, row.peer, row.higherIsBetter)}`}>
-            {typeof row.your === 'number' ? row.your.toLocaleString() : row.your}
-          </div>
-          <div className="text-sm py-1 px-1 text-center text-gray-700">
-            {typeof row.peer === 'number' ? row.peer.toLocaleString() : row.peer}
-          </div>
-          <div className="text-sm py-1 px-1 text-center text-blue-700 font-medium">
-            {typeof row.best === 'number' ? row.best.toLocaleString() : row.best}
-          </div>
-        </div>
-      ))}
-      {data.interpretation && (
-        <p className="mt-3 text-xs text-gray-600 bg-gray-50 rounded p-2 border border-gray-100">{data.interpretation}</p>
-      )}
+    <div className="bg-white rounded-lg border border-gray-200 p-5">
+      <p className="text-sm font-semibold text-gray-900 mb-1">Supply Forecast — Q4 2025</p>
+      <p className="text-xs text-gray-400 mb-3">Historical Apr–Sep + 3-month forecast with confidence band · L/day total</p>
+      <ResponsiveContainer width="100%" height={180}>
+        <ComposedChart data={combined} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+          <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `${(v/1000).toFixed(1)}k`} />
+          <Tooltip formatter={(v, n) => [`${v?.toLocaleString()} L`, n]} />
+          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Area dataKey="upper" fill="#bfdbfe" stroke="none" name="Upper bound" />
+          <Area dataKey="lower" fill="#ffffff" stroke="none" name="Lower bound" />
+          <Line type="monotone" dataKey="actual" name="Actual supply" stroke="#3b82f6" dot={{ r: 4 }} strokeWidth={2} />
+          <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#6366f1" strokeDasharray="5 3" dot={{ r: 3 }} strokeWidth={2} />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-// Section D: Cost Analysis Chart
-function CostAnalysisChart({ data }) {
-  const gradientId = useId();
-  if (!data || !data.price_trend) return null;
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="bg-white border border-gray-200 rounded p-2 text-xs shadow-sm">
-        <p className="font-semibold text-gray-700 mb-1">{label}</p>
-        {payload.map((p) => (
-          <p key={p.dataKey} style={{ color: p.color }}>
-            {p.name}: ₦{(p.value || 0).toLocaleString()}/L
-          </p>
-        ))}
-      </div>
-    );
-  };
+function HerdHealthSummary() {
+  const highCount = SUPPLIERS.filter(f => f.tier === 'high').length;
+  const midCount = SUPPLIERS.filter(f => f.tier === 'medium').length;
+  const lowCount = SUPPLIERS.filter(f => f.tier === 'low').length;
+  const avgActivity = (SUPPLIERS.reduce((s,f)=>s+f.avg_activity_rate,0)/SUPPLIERS.length).toFixed(1);
+  const avgRum = Math.round(SUPPLIERS.reduce((s,f)=>s+f.avg_rumination_min,0)/SUPPLIERS.length);
 
   return (
-    <ResponsiveContainer width="100%" height={220}>
-      <AreaChart data={data.price_trend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-        <defs>
-          <linearGradient id={`${gradientId}-spread`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#BFDBFE" stopOpacity={0.5} />
-            <stop offset="95%" stopColor="#BFDBFE" stopOpacity={0.05} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-        <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9CA3AF' }} />
-        <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} tickFormatter={(v) => `₦${v}`} />
-        <Tooltip content={<CustomTooltip />} />
-        <Area type="monotone" dataKey="import_parity" stroke="#93C5FD" strokeWidth={1.5} fill={`url(#${gradientId}-spread)`} name="Import parity" dot={false} />
-        <Line type="monotone" dataKey="your_price" stroke="#2563EB" strokeWidth={2} dot={false} name="Your avg price" />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="bg-white rounded-lg border border-gray-200 p-5">
+      <p className="text-sm font-semibold text-gray-900 mb-3">Supplier Herd Health Summary</p>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between py-2 border-b border-gray-50">
+          <p className="text-sm text-gray-600">Avg herd activity rate</p>
+          <p className="text-sm font-bold text-blue-700">{avgActivity}%</p>
+        </div>
+        <div className="flex items-center justify-between py-2 border-b border-gray-50">
+          <p className="text-sm text-gray-600">Avg rumination</p>
+          <p className="text-sm font-bold text-green-700">{avgRum} min/day</p>
+        </div>
+        <div className="flex items-center justify-between py-2 border-b border-gray-50">
+          <p className="text-sm text-gray-600">High-performing suppliers</p>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">{highCount} farms</span>
+        </div>
+        <div className="flex items-center justify-between py-2 border-b border-gray-50">
+          <p className="text-sm text-gray-600">Medium-performing</p>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">{midCount} farms</span>
+        </div>
+        {lowCount > 0 && (
+          <div className="flex items-center justify-between py-2">
+            <p className="text-sm text-gray-600">At-risk suppliers</p>
+            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">{lowCount} farms</span>
+          </div>
+        )}
+        <p className="text-xs text-gray-400 pt-1">Herd health = key predictor of milk quality &amp; volume reliability</p>
+      </div>
+    </div>
   );
 }
 
-// Main ProcessorDashboard
 export default function ProcessorDashboard() {
-  const { user } = useAuth();
-  const processorId = user?.org_id || 'proc_001';
-
-  const [supplyData, setSupplyData] = useState(null);
-  const [supplyLoading, setSupplyLoading] = useState(true);
-  const [supplyError, setSupplyError] = useState(false);
-
-  const [benchmarkData, setBenchmarkData] = useState(null);
-  const [benchmarkLoading, setBenchmarkLoading] = useState(true);
-  const [benchmarkError, setBenchmarkError] = useState(false);
-
-  const [costData, setCostData] = useState(null);
-  const [costLoading, setCostLoading] = useState(true);
-  const [costError, setCostError] = useState(false);
-
-  async function loadSupply() {
-    setSupplyLoading(true); setSupplyError(false);
-    try {
-      const res = await getSupplyForecast(processorId);
-      setSupplyData(res.data);
-    } catch { setSupplyError(true); }
-    finally { setSupplyLoading(false); }
-  }
-
-  async function loadBenchmark() {
-    setBenchmarkLoading(true); setBenchmarkError(false);
-    try {
-      const res = await getBenchmarking(processorId);
-      setBenchmarkData(res.data);
-    } catch { setBenchmarkError(true); }
-    finally { setBenchmarkLoading(false); }
-  }
-
-  async function loadCost() {
-    setCostLoading(true); setCostError(false);
-    try {
-      const res = await getCostAnalysis(processorId);
-      setCostData(res.data);
-    } catch { setCostError(true); }
-    finally { setCostLoading(false); }
-  }
-
-  useEffect(() => {
-    loadSupply();
-    loadBenchmark();
-    loadCost();
-  }, [processorId]);
-
-  const suppliers = supplyData?.suppliers || [];
-  const forecast = supplyData?.forecast || [];
-  const risks = costData?.risks || [];
+  const totalDailyVol = Math.round(SUPPLIERS.reduce((s,f) => s+f.herd_size*f.avg_milk_yield_L, 0));
+  const avgReliability = Math.round(SUPPLIERS.reduce((s,f) => s+reliabilityScore(f), 0) / SUPPLIERS.length);
+  const topSupplier = [...SUPPLIERS].sort((a,b) => (b.herd_size*b.avg_milk_yield_L)-(a.herd_size*a.avg_milk_yield_L))[0];
+  const avgActivity = (SUPPLIERS.reduce((s,f)=>s+f.avg_activity_rate,0)/SUPPLIERS.length).toFixed(1);
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-5">
       <div>
-        <h1 className="text-lg font-bold text-gray-900">Processor Intelligence Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Supply forecast, benchmarking, and cost analysis</p>
+        <h1 className="text-xl font-bold text-gray-900">Processor Supply Chain — {NETWORK.region}</h1>
+        <p className="text-sm text-gray-500 mt-0.5">
+          {SUPPLIERS.length} supplier farms · supply reliability derived from Bodit sensor data · {NETWORK.period}
+        </p>
       </div>
 
-      {/* Section A: Supply Forecast */}
-      <section aria-label="Supply Forecast">
-        <Card title="30-Day Supply Forecast">
-          {supplyLoading ? (
-            <Spinner />
-          ) : supplyError ? (
-            <SectionError onRetry={loadSupply} />
-          ) : (
-            <SupplyForecast forecastData={forecast} />
-          )}
-        </Card>
-      </section>
-
-      {/* Section B: Supply Sources */}
-      <section aria-label="Supply Sources">
-        <Card title="Supply Sources">
-          {supplyLoading ? (
-            <Spinner />
-          ) : supplyError ? (
-            <SectionError onRetry={loadSupply} />
-          ) : (
-            <SupplySourcesTable suppliers={suppliers} />
-          )}
-        </Card>
-      </section>
-
-      {/* Section C & D: Benchmarking + Cost */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section aria-label="Benchmarking">
-          <Card title="Benchmarking">
-            {benchmarkLoading ? (
-              <Spinner />
-            ) : benchmarkError ? (
-              <SectionError onRetry={loadBenchmark} />
-            ) : (
-              <BenchmarkingSection data={benchmarkData} />
-            )}
-          </Card>
-        </section>
-
-        <section aria-label="Price vs Import Parity">
-          <Card title="Price vs Import Parity (12 months)">
-            {costLoading ? (
-              <Spinner />
-            ) : costError ? (
-              <SectionError onRetry={loadCost} />
-            ) : (
-              <CostAnalysisChart data={costData} />
-            )}
-          </Card>
-        </section>
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPI label="Daily Supply" value={`${totalDailyVol.toLocaleString()} L`} sub={`${SUPPLIERS.length} supplier farms`} color="text-blue-700" />
+        <KPI label="Avg Herd Activity" value={`${avgActivity}%`} sub="supply quality proxy" color="text-green-700" />
+        <KPI label="Avg Reliability Score" value={avgReliability} sub="sensor-derived · /100" color={avgReliability >= 70 ? 'text-green-700' : 'text-amber-600'} />
+        <KPI label="Largest Supplier" value={`${Math.round(topSupplier.herd_size * topSupplier.avg_milk_yield_L)} L/day`} sub={topSupplier.name.split(' ').slice(0,2).join(' ')} color="text-purple-700" />
       </div>
 
-      {/* Section E: Supply Risk */}
-      <section aria-label="Supply Risk Alerts">
-        <Card title="Supply Risk Alerts">
-          {costLoading ? (
-            <Spinner />
-          ) : costError ? (
-            <SectionError onRetry={loadCost} />
-          ) : risks.length === 0 ? (
-            <p className="text-sm text-gray-500">No active risks detected.</p>
-          ) : (
-            <div className="space-y-3">
-              {risks.map((r, i) => (
-                <AlertBox
-                  key={i}
-                  level={r.level}
-                  title={r.name}
-                  message={`${r.description}${r.affected_suppliers?.length ? ` Affected: ${r.affected_suppliers.join(', ')}.` : ''}`}
-                />
-              ))}
-            </div>
-          )}
-        </Card>
-      </section>
+      {/* Supply volume + forecast */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <SupplyVolumeChart />
+        <SupplyForecast />
+      </div>
+
+      {/* Supplier table + health summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+        <div className="lg:col-span-3">
+          <SupplierTable />
+        </div>
+        <HerdHealthSummary />
+      </div>
+
+      <p className="text-xs text-gray-400 text-center pb-4">
+        Supply reliability derived from Bodit behavioural sensor data · activity rate, rumination, disease burden ·
+        {SUPPLIERS.length} supplier farms · {NETWORK.region} · {NETWORK.period}
+      </p>
     </div>
   );
 }
