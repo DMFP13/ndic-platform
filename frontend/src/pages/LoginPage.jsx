@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const DEMO_ACCOUNTS = [
-  { role: 'farm_manager',         label: 'Farm Manager',      email: 'farm@ndic.ng',        desc: 'Herd health, AI insights, milk yield' },
   { role: 'govt_analyst',         label: 'FMARD Analyst',     email: 'govt@ndic.ng',         desc: 'Disease map, production trends, alerts' },
   { role: 'lender_analyst',       label: 'Lender Analyst',    email: 'lender@ndic.ng',       desc: 'Portfolio risk, collateral valuation' },
   { role: 'processor_analyst',    label: 'Processor Analyst', email: 'processor@ndic.ng',    desc: 'Supply forecast, supplier benchmarking' },
@@ -23,7 +22,7 @@ function getRoleRoute(role) {
 export default function LoginPage() {
   const { demoLogin } = useAuth();
   const navigate = useNavigate();
-  const [selected, setSelected] = useState('farm_manager');
+  const [selected, setSelected] = useState('govt_analyst');
 
   function enter(role, email) {
     demoLogin(role, email);
