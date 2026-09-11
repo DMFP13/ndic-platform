@@ -91,39 +91,104 @@ function WeatherWidget({ lat = 9.0765, lon = 7.3986, locationName = 'Farm' }) {
   );
 }
 
-// ── Market prices ──────────────────────────────────────────────────────────
-function MarketPrices() {
-  const today = new Date();
-  const seed = today.getDate() + today.getMonth() * 31;
-  const v = (base, variance) => (base + (seed % variance) - variance / 2).toFixed(2);
+// ── Market prices — live from World Bank + open.er-api.com ─────────────────
+// World Bank commodity indicators (source 89 — Global Economic Monitor):
+//   PMAIZMT = Maize US No.2 Yellow, USD/MT
+//   PWHEAMT = Wheat Hard Red Winter, USD/MT
+//   PMILK   = Whole milk powder NZ export, USD/MT
+// Exchange rate: open.er-api.com (free, no key)
+// Nigerian live-cattle and farm-gate milk have no WB equivalent — seeded estimate kept.
 
-  const prices = [
-    { item: 'Raw milk', unit: '₦ / litre', price: v(320, 20), trend: '+2.1%', up: true },
-    { item: 'Cattle (adult, liveweight)', unit: '₦ / kg LW', price: v(1850, 100), trend: '-0.8%', up: false },
-    { item: 'Maize (feed grain)', unit: '₦ / kg', price: v(510, 40), trend: '+5.3%', up: true },
-    { item: 'Hay / fodder', unit: '₦ / bale', price: v(2200, 150), trend: '+1.4%', up: true },
-    { item: 'Powdered milk (import)', unit: '₦ / kg', price: v(4800, 200), trend: '-1.2%', up: false },
-    { item: 'UHT milk (retail)', unit: '₦ / litre', price: v(680, 30), trend: '+3.0%', up: true },
+async function fetchWBLatest(code) {
+  const r = await fetch(
+    `https://api.worldbank.org/v2/country/wld/indicator/${code}?format=json&mrv=6&frequency=M`
+  );
+  const j = await r.json();
+  const rec = j[1]?.find(v => v.value !== null);
+  return { usdMT: rec?.value ?? null, date: rec?.date ?? null };
+}
+
+function MarketPrices() {
+  const [live, setLive]       = useState(null);   // { maize, wheat, milk, rate, date }
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [fxRes, maize, wheat, milk] = await Promise.all([
+          fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json()),
+          fetchWBLatest('PMAIZMT'),
+          fetchWBLatest('PWHEAMT'),
+          fetchWBLatest('PMILK'),
+        ]);
+        const rate = fxRes.rates?.NGN ?? 1600;
+        const toNGN = usdMT => usdMT ? Math.round(usdMT * rate / 1000) : null;
+        setLive({ maize: toNGN(maize.usdMT), wheat: toNGN(wheat.usdMT), milkPowder: toNGN(milk.usdMT), rate: Math.round(rate), date: maize.date });
+      } catch (_) {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  // Seeded local estimates for items with no WB equivalent
+  const today = new Date();
+  const seed  = today.getDate() + today.getMonth() * 31;
+  const est   = (base, range) => Math.round(base + (seed % range) - range / 2);
+
+  const rows = [
+    { item: 'Raw milk',               unit: '₦ / litre',   price: est(320, 20),    live: false, src: 'Farm-gate estimate' },
+    { item: 'Cattle (adult, LW)',     unit: '₦ / kg LW',   price: est(1850, 100),  live: false, src: 'Local market estimate' },
+    { item: 'Maize (feed grain)',     unit: '₦ / kg',       price: live?.maize  ?? est(510, 40),   live: !!live?.maize,     src: live?.maize  ? 'World Bank PMAIZMT' : 'Local estimate' },
+    { item: 'Wheat / feed',          unit: '₦ / kg',       price: live?.wheat  ?? est(380, 30),   live: !!live?.wheat,     src: live?.wheat  ? 'World Bank PWHEAMT' : 'Local estimate' },
+    { item: 'Powdered milk (import)', unit: '₦ / kg',       price: live?.milkPowder ?? est(4800, 200), live: !!live?.milkPowder, src: live?.milkPowder ? 'World Bank PMILK'   : 'Local estimate' },
+    { item: 'UHT milk (retail)',      unit: '₦ / litre',   price: est(680, 30),    live: false, src: 'Local retail estimate' },
   ];
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5">
-      <p className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-3">Nigerian Dairy Market Prices</p>
-      <div className="space-y-2">
-        {prices.map(p => (
-          <div key={p.item} className="flex items-center justify-between py-1.5 border-b border-gray-50 last:border-0">
-            <div>
-              <p className="text-sm font-medium text-gray-800">{p.item}</p>
-              <p className="text-xs text-gray-400">{p.unit}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-bold text-gray-900">{Number(p.price).toLocaleString()}</p>
-              <p className={`text-xs font-medium ${p.up ? 'text-green-600' : 'text-red-500'}`}>{p.trend} vs 30d</p>
-            </div>
-          </div>
-        ))}
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Dairy Market Prices</p>
+        <div className="flex items-center gap-2">
+          {live && <span className="text-xs text-gray-400">USD/NGN {live.rate.toLocaleString()}</span>}
+          {live && <span className="flex items-center gap-1 text-xs text-green-700 font-medium"><span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />Live</span>}
+        </div>
       </div>
-      <p className="mt-2 text-xs text-gray-400">FMARD reference prices · Updated daily</p>
+
+      {loading ? (
+        <div className="space-y-3 animate-pulse">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-8 bg-gray-100 rounded" />)}
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {rows.map(p => (
+            <div key={p.item} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-sm font-medium text-gray-800">{p.item}</p>
+                  {p.live && <span className="text-xs px-1.5 py-0.5 rounded bg-green-50 text-green-700 border border-green-100 font-medium leading-none">live</span>}
+                </div>
+                <p className="text-xs text-gray-400">{p.unit} · {p.src}</p>
+              </div>
+              <p className="text-sm font-bold text-gray-900 tabular-nums">{Number(p.price).toLocaleString()}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 pt-2 border-t border-gray-50">
+        {live ? (
+          <p className="text-xs text-gray-400">
+            World Bank commodity data · {live.date?.replace('M', '/')} · open.er-api.com FX · USD converted to NGN
+          </p>
+        ) : error ? (
+          <p className="text-xs text-amber-600">Live feed unavailable — showing local estimates</p>
+        ) : (
+          <p className="text-xs text-gray-400">FMARD reference prices</p>
+        )}
+      </div>
     </div>
   );
 }
