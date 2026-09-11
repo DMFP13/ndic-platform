@@ -34,7 +34,7 @@ function RootRedirect() {
   if (loading) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   const role = user?.role;
-  if (FARM_ROLES.includes(role)) return <Navigate to="/farm" replace />;
+  if (FARM_ROLES.includes(role)) return <Navigate to="/research" replace />;
   if (role === 'processor_analyst' || role === 'processor_commercial') return <Navigate to="/processor" replace />;
   if (role === 'govt_analyst' || role === 'govt_admin' || role === 'arpexas_admin') return <Navigate to="/government" replace />;
   if (role === 'lender_analyst') return <Navigate to="/lender" replace />;
@@ -113,7 +113,7 @@ function AppRoutes() {
       <Route
         path="/research"
         element={
-          <RoleRoute allowedRoles={['research_analyst']}>
+          <RoleRoute allowedRoles={['research_analyst', 'farm_manager', 'farm_admin', 'farm_vet']}>
             <DashboardLayout />
           </RoleRoute>
         }
