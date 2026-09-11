@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 const DEMO_ACCOUNTS = [
   { role: 'research_analyst', label: 'Farm Manager',        email: 'farm@ndic.ng',      desc: 'Herd health, AI insights, milk yield' },
   { role: 'processor_analyst',label: 'Processor Analyst',   email: 'processor@ndic.ng', desc: 'Supply forecast, supplier benchmarking' },
-  { role: 'lender_analyst',   label: 'Lender Analyst',      email: 'lender@ndic.ng',    desc: 'Portfolio risk, collateral valuation' },
+  { role: 'farm_vet',         label: 'Veterinary Officer',   email: 'vet@ndic.ng',       desc: 'Priority health queue, P4 monitoring, vaccinations' },
   { role: 'govt_analyst',     label: 'Government (FMARD)',  email: 'govt@ndic.ng',      desc: 'Regional map, disease outbreaks, production trends' },
   { role: 'research_analyst', label: 'Research Dashboard',  email: 'research@ndic.ng',  desc: 'Bodit sensors · P4 Rapid · live weather & markets' },
 ];
@@ -15,6 +15,7 @@ function getRoleRoute(role) {
   if (role === 'processor_analyst' || role === 'processor_commercial') return '/processor';
   if (role === 'govt_analyst' || role === 'govt_admin') return '/government';
   if (role === 'lender_analyst') return '/lender';
+  if (role === 'farm_vet') return '/vet';
   if (role === 'arpexas_admin') return '/government';
   if (role === 'research_analyst') return '/research';
   return '/login';

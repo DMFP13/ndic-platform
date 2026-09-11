@@ -8,10 +8,11 @@ import FarmDashboard from './components/FarmDashboard.jsx';
 import ProcessorDashboard from './components/ProcessorDashboard.jsx';
 import GovDashboard from './components/GovDashboard.jsx';
 import LenderDashboard from './components/LenderDashboard.jsx';
+import VetDashboard from './components/VetDashboard.jsx';
 import ResearchDashboard from './components/ResearchDashboard.jsx';
 import ResearchCowPassport from './pages/ResearchCowPassport.jsx';
 
-const FARM_ROLES = ['farm_manager', 'farm_admin', 'farm_vet'];
+const FARM_ROLES = ['farm_manager', 'farm_admin'];
 const PASSPORT_READ_ROLES = [
   ...FARM_ROLES,
   'processor_analyst', 'processor_commercial',
@@ -38,6 +39,7 @@ function RootRedirect() {
   if (role === 'processor_analyst' || role === 'processor_commercial') return <Navigate to="/processor" replace />;
   if (role === 'govt_analyst' || role === 'govt_admin' || role === 'arpexas_admin') return <Navigate to="/government" replace />;
   if (role === 'lender_analyst') return <Navigate to="/lender" replace />;
+  if (role === 'farm_vet') return <Navigate to="/vet" replace />;
   if (role === 'research_analyst') return <Navigate to="/research" replace />;
   return <Navigate to="/login" replace />;
 }
@@ -108,6 +110,17 @@ function AppRoutes() {
         }
       >
         <Route index element={<LenderDashboard />} />
+      </Route>
+
+      <Route
+        path="/vet"
+        element={
+          <RoleRoute allowedRoles={['farm_vet']}>
+            <DashboardLayout />
+          </RoleRoute>
+        }
+      >
+        <Route index element={<VetDashboard />} />
       </Route>
 
       <Route

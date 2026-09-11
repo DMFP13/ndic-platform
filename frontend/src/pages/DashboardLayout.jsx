@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import {
-  LayoutDashboard, Leaf, Factory, Building2, CreditCard,
+  LayoutDashboard, Leaf, Factory, Building2, CreditCard, Stethoscope,
   LogOut, ChevronLeft, ChevronRight, ClipboardList, Bell,
   X, ChevronRight as Chevron,
 } from 'lucide-react';
@@ -10,7 +10,7 @@ import {
 const ROLE_NAV = {
   farm_manager:         [{ label: 'Farm Dashboard', path: '/research', icon: Leaf }],
   farm_admin:           [{ label: 'Farm Dashboard', path: '/research', icon: Leaf }],
-  farm_vet:             [{ label: 'Farm Dashboard', path: '/research', icon: Leaf }],
+  farm_vet:             [{ label: 'Veterinary', path: '/vet', icon: Stethoscope }],
   processor_analyst:    [{ label: 'Processor Dashboard', path: '/processor', icon: Factory }],
   processor_commercial: [{ label: 'Processor Dashboard', path: '/processor', icon: Factory }],
   govt_analyst:         [{ label: 'Government Dashboard', path: '/government', icon: Building2 }],
@@ -22,7 +22,7 @@ const ROLE_NAV = {
 const ROLE_BADGE = {
   farm_manager:         { label: 'Farm',       className: 'bg-green-100 text-green-800' },
   farm_admin:           { label: 'Farm',       className: 'bg-green-100 text-green-800' },
-  farm_vet:             { label: 'Vet',        className: 'bg-teal-100 text-teal-800' },
+  farm_vet:             { label: 'Veterinary', className: 'bg-teal-100 text-teal-800' },
   processor_analyst:    { label: 'Processor',  className: 'bg-blue-100 text-blue-800' },
   processor_commercial: { label: 'Processor',  className: 'bg-blue-100 text-blue-800' },
   govt_analyst:         { label: 'Government', className: 'bg-purple-100 text-purple-800' },
