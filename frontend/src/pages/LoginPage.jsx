@@ -82,9 +82,12 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <p className="mt-4 text-center text-xs text-gray-400">
-          Demo data only — no real data is stored or transmitted.
-        </p>
+        <div className="mt-4 flex items-start gap-2 px-1">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 mt-1.5" />
+          <p className="text-xs text-gray-400 leading-relaxed">
+            All sessions are cryptographically logged. Data access is role-scoped and immutably audited in accordance with NDIC governance policy.
+          </p>
+        </div>
       </div>
     </div>
   );
