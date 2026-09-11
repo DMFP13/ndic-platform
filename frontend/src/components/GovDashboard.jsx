@@ -52,6 +52,133 @@ const DISEASE_CLUSTERS = [
   { name: 'CBPP — Nasarawa',   lat: 8.55, lon: 8.4,  r: 30, disease: 'CBPP', severity: 'medium' },
 ];
 
+// NiMet-style weather warnings for North Central Nigeria
+const WEATHER_WARNINGS = [
+  {
+    id: 'w1',
+    type: 'Heavy Rainfall',
+    icon: '🌧',
+    severity: 'red',
+    title: 'Flash Flood Watch — Benue & Kogi',
+    detail: 'Forecast 80–120 mm rainfall over 24 hrs. River Niger and Benue tributaries near capacity. Move livestock to higher ground.',
+    states: ['Benue', 'Kogi', 'Anambra'],
+    issued: '2025-09-10',
+    expires: '2025-09-12',
+    source: 'NiMet',
+  },
+  {
+    id: 'w2',
+    type: 'Heat Stress',
+    icon: '☀️',
+    severity: 'amber',
+    title: 'Livestock Heat Stress — Katsina & Zamfara',
+    detail: 'Daytime temps 39–42 °C forecast. High humidity. Cattle productivity and health risk elevated. Ensure shade, water, and early-morning grazing.',
+    states: ['Katsina', 'Zamfara', 'Sokoto'],
+    issued: '2025-09-09',
+    expires: '2025-09-14',
+    source: 'NiMet',
+  },
+  {
+    id: 'w3',
+    type: 'Thunderstorm',
+    icon: '⛈',
+    severity: 'amber',
+    title: 'Severe Thunderstorm Advisory — Plateau & Taraba',
+    detail: 'Isolated severe storms with lightning, gusty winds 55–75 km/h and hail possible in elevated areas. Risk of barn damage and animal injury.',
+    states: ['Plateau', 'Taraba', 'Bauchi'],
+    issued: '2025-09-11',
+    expires: '2025-09-11',
+    source: 'NiMet',
+  },
+  {
+    id: 'w4',
+    type: 'Dry Spell',
+    icon: '🌵',
+    severity: 'amber',
+    title: 'Pasture Dry Spell — Kaduna & Niger',
+    detail: 'Below-average rainfall for 3rd consecutive week. Pasture productivity reduced by est. 30%. Supplement feeding recommended.',
+    states: ['Kaduna', 'Niger', 'FCT'],
+    issued: '2025-09-05',
+    expires: '2025-09-20',
+    source: 'NiMet / FMARD',
+  },
+  {
+    id: 'w5',
+    type: 'Harmattan Outlook',
+    icon: '💨',
+    severity: 'green',
+    title: 'Early Harmattan Onset Possible — North',
+    detail: 'Dust-laden NE trade winds forecast to arrive 2–3 weeks earlier than average. Expect reduced visibility and respiratory stress in animals. Prepare ventilation.',
+    states: ['Katsina', 'Kaduna', 'Zamfara'],
+    issued: '2025-09-08',
+    expires: '2025-10-01',
+    source: 'NiMet Seasonal Outlook',
+  },
+];
+
+const SEV_STYLE = {
+  red:   { bar: 'bg-red-500',   badge: 'bg-red-100 text-red-700 border-red-200',   card: 'border-red-200 bg-red-50',   label: 'text-red-700' },
+  amber: { bar: 'bg-amber-400', badge: 'bg-amber-100 text-amber-700 border-amber-200', card: 'border-amber-200 bg-amber-50', label: 'text-amber-700' },
+  green: { bar: 'bg-blue-400',  badge: 'bg-blue-100 text-blue-700 border-blue-200',  card: 'border-blue-200 bg-blue-50',  label: 'text-blue-700' },
+};
+
+function WeatherWarnings() {
+  const [expanded, setExpanded] = useState(null);
+  const active = WEATHER_WARNINGS;
+  const redCount = active.filter(w => w.severity === 'red').length;
+  const amberCount = active.filter(w => w.severity === 'amber').length;
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${redCount > 0 ? 'bg-red-500 animate-pulse' : 'bg-amber-400'}`} />
+          <p className="text-sm font-semibold text-gray-900">NiMet Weather Warnings — North Central Nigeria</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs">
+          {redCount > 0 && <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold border border-red-200">{redCount} RED</span>}
+          {amberCount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold border border-amber-200">{amberCount} AMBER</span>}
+          <span className="text-gray-400">Updated {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
+        </div>
+      </div>
+      <div className="divide-y divide-gray-50">
+        {active.map(w => {
+          const s = SEV_STYLE[w.severity];
+          const open = expanded === w.id;
+          return (
+            <div key={w.id} className={`flex gap-0 cursor-pointer transition-colors ${open ? s.card : 'hover:bg-gray-50'}`}
+              onClick={() => setExpanded(open ? null : w.id)}>
+              <div className={`w-1 flex-shrink-0 ${s.bar}`} />
+              <div className="flex-1 px-4 py-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-base">{w.icon}</span>
+                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded border ${s.badge}`}>{w.type}</span>
+                    <p className={`text-sm font-semibold ${s.label}`}>{w.title}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 text-xs text-gray-400">
+                    <span>{w.expires}</span>
+                    <span>{open ? '▲' : '▼'}</span>
+                  </div>
+                </div>
+                {open && (
+                  <div className="mt-2 space-y-1.5">
+                    <p className="text-xs text-gray-700 leading-relaxed">{w.detail}</p>
+                    <p className="text-xs text-gray-500">
+                      <span className="font-medium">Affected states:</span> {w.states.join(', ')}
+                    </p>
+                    <p className="text-xs text-gray-400">Issued {w.issued} · Source: {w.source}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function KPI({ label, value, sub, color = 'text-blue-700' }) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -508,6 +635,9 @@ export default function GovDashboard() {
         <KPI label="Daily Milk Output" value={`${(totalDailyMilk/1000).toFixed(1)}k L`} sub="aggregate production" color="text-teal-700" />
         <KPI label="Disease Alerts" value={alertFarms} sub={`of ${FARMS.length} farms flagged`} color={alertFarms > 3 ? 'text-red-600' : 'text-amber-600'} />
       </div>
+
+      {/* Weather warnings */}
+      <WeatherWarnings />
 
       {/* Regional map — full width */}
       <RegionalMap />
